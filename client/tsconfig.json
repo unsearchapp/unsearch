@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"target": "es2016",
+		"jsx": "react",
+
+		"module": "commonjs",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"ui": ["../packages/ui/src"]
+		},
+		"types": ["vite/client"],
+		"outDir": "./dist",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true
+	},
+	"include": ["src/**/*.ts", "public/**/*.ts", "src/**/*.tsx"]
+}

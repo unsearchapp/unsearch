@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "name": "my-monorepo",
+  "version": "1.0.0",
+  "workspaces": [
+    "client",
+    "extension",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter client dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build:backend": "pnpm --filter backend build",
+    "start:backend": "pnpm --filter backend start",
+    "format": "prettier --write .",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "start": "pnpm -r start"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.5"
+  }
+}

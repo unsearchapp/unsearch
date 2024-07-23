@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"target": "es2016",
+		"module": "commonjs",
+		"baseUrl": "./",
+		"paths": {
+			"*": ["*", "./types/*"]
+		},
+		"typeRoots": ["./node_modules/@types", "./src/httpServer/types"],
+		"outDir": "./dist",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"skipLibCheck": true
+	},
+	"include": ["src/**/*.ts", "src/**/*.d.ts"]
+}
