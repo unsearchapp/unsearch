@@ -68,9 +68,11 @@ VITE_BACKEND_URL=http://localhost:5000  # Url of the http server
 VITE_WS_URL=ws://localhost:1234         # Url of the websocket server
 ```
 
-6. Build the extension: `pnpm build`
+6. To start dev mode: `pnpm dev:firefox`
 
-To test the extension locally you can load the extension unpackge on Google Chrome, Firefox and Microsoft Edge.
+7. To build the extension: `pnpm build`
+
+After building, you can load the `/dist` folder as an unpackged extension on Google Chrome, Firefox and Microsoft Edge.
 
 If you encounter any issues, make sure you are using the following versions of Node and pnpm:
 
