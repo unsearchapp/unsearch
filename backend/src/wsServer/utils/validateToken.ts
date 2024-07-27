@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { logger } from "../../utils/logger";
 
 export const validateToken = (token: string): { userId: string } | null => {
 	try {
@@ -6,6 +7,7 @@ export const validateToken = (token: string): { userId: string } | null => {
 			userId: string;
 		};
 	} catch (error) {
+		logger.error(error, "Error on token validation")
 		return null;
 	}
 };

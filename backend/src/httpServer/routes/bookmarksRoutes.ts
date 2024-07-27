@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
 import { getBookmarksByUser, deleteBookmarkById } from "../../db/bookmarksModel";
 import { sendMessageToUser } from "../../wsServer/wsServer";
+import { logger } from "../../utils/logger";
 
 const router = Router();
 
@@ -10,6 +11,7 @@ router.get("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 		const bookmarks = await getBookmarksByUser(req.user!._id);
 		res.json({ data: bookmarks });
 	} catch (error) {
+		logger.error(error, "Error in /bookmarks GET route");
 		res.status(500).json({ error });
 	}
 });
@@ -27,6 +29,7 @@ router.delete("/bookmarks", requireAuth, async (req, res) => {
 
 		res.json({ data: rowsDeleted });
 	} catch (error) {
+		logger.error(error, "Error in /bookmarks DELETE route");
 		res.status(500).json({ error });
 	}
 });

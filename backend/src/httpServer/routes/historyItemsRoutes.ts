@@ -2,6 +2,7 @@ import { Router } from "express";
 import { getHistoryItemsByUser, deleteHistoryItems } from "../../db/historyItemsModel";
 import { requireAuth } from "../middlewares/requireAuth";
 import { sendMessageToUser } from "../../wsServer/wsServer";
+import { logger } from "../../utils/logger";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.get("/history-items", requireAuth, async (req, res) => {
 		const historyItems = await getHistoryItemsByUser(req.user!._id, query);
 		res.json({ data: historyItems });
 	} catch (error) {
+		logger.error(error, "Error in /history-items GET route");
 		res.status(500).json({ error });
 	}
 });
@@ -34,6 +36,7 @@ router.delete("/history-items", requireAuth, async (req, res) => {
 
 		res.json({ data: deletedRows });
 	} catch (error) {
+		logger.error(error, "Error in /history-items delete route");
 		res.status(500).json({ error });
 	}
 });

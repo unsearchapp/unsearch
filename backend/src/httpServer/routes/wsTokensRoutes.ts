@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { Router } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
+import { logger } from "../../utils/logger";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get("/token", requireAuth, async (req, res) => {
 
 		res.json({ token });
 	} catch (error) {
-		console.error(error);
+		logger.error(error, "Error in /token GET route");
 		res.status(500).json({ error });
 	}
 });

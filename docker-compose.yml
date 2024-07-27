@@ -41,6 +41,7 @@ services:
       - PGPASSWORD
       - PGPORT
       - JWT_SECRET
+      - LOG_LEVEL
     depends_on:
       postgres:
         condition: service_healthy

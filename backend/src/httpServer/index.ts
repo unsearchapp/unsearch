@@ -11,6 +11,7 @@ import sessionsRouter from "./routes/sessionRoutes";
 import authRouter from "./routes/authRoutes";
 import pgSession from "connect-pg-simple";
 import { pool } from "../db/db";
+import { logger } from "../utils/logger";
 
 const app = express();
 const port = process.env.HTTP_PORT;
@@ -53,7 +54,7 @@ app.use("/api", authRouter);
 
 function setUpHttpServer() {
 	app.listen(port, () => {
-		console.log(`Server is running on port ${port}`);
+		logger.info(`Server is running on port ${port}`);
 	});
 }
 

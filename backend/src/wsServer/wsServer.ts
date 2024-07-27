@@ -28,10 +28,12 @@ import {
 	getPendingMessagesBySession,
 	updateMessageStatus
 } from "../db/messagesModel";
+import { logger } from "../utils/logger";
 
 const port = process.env.WS_PORT;
 if (!port) {
-	throw "WS_PORT enviroment variable is missing";
+	logger.error("WS_PORT enviroment variable is missing");
+	throw new Error("WS_PORT enviroment variable is missing");
 }
 
 const wss = new ws.WebSocketServer({ port: parseInt(port) });
@@ -46,7 +48,7 @@ export const sendMessageToUser = async (userId: string, sessionId: string, messa
 		try {
 			userConnection.ws.send(message);
 		} catch (error) {
-			console.error("Error sending message:", error);
+			logger.error(error, "Error sending to user session");
 			// If sending fails, add to the message queue
 			await createPendingMessage(userId, sessionId, message);
 		}
@@ -59,7 +61,9 @@ wss.on("connection", (ws: any, req: any) => {
 	let userId: string | null = null;
 	let sessionId: string | null = null;
 
-	ws.on("error", console.error);
+	ws.on("error", (error: Error) => {
+		logger.error(error, "WebSocket connection error");
+	});
 
 	ws.on("close", () => {
 		if (userId && sessionId) {
@@ -80,6 +84,8 @@ wss.on("connection", (ws: any, req: any) => {
 							userId = result.userId;
 							ws.send(JSON.stringify({ type: "AUTH_SUCCESS" }));
 						}
+					} else {
+						logger.info("Invalid AUTH payload");
 					}
 					break;
 
@@ -106,9 +112,11 @@ wss.on("connection", (ws: any, req: any) => {
 
 								ws.send(JSON.stringify({ type: "HISTORY_INIT" })); // Check if session has previous data
 							} catch (error) {
-								console.error(error);
+								logger.error(error, "Error handling ID message");
 								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
+						} else {
+							logger.info("Invalid ID payload");
 						}
 					}
 					break;
@@ -121,8 +129,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await historyAddHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in history add handler");
 								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
+						} else {
+							logger.info("Invalid history add payload");
 						}
 					}
 
@@ -136,8 +147,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await historyDeleteHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in history delete handler");
 								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
+						} else {
+							logger.info("Invalid history delete payload");
 						}
 					}
 					break;
@@ -150,8 +164,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksAddHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in bookmarks add handler");
 								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
+						} else {
+							logger.info("Invalid bookmarks add payload");
 						}
 					}
 					break;
@@ -164,8 +181,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksDeleteHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in bookmarks delete handler");
 								ws.send(JSON.stringify({ type: "ERROR", error }));
 							}
+						} else {
+							logger.info("Invalid bookmarks delete payload");
 						}
 					}
 					break;
@@ -178,8 +198,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksMoveHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in bookmarks move handler");
 								ws.send(JSON.stringify({ type: "ERROR", error }));
 							}
+						} else {
+							logger.info("Invalid bookmarks move payload");
 						}
 					}
 					break;
@@ -192,8 +215,11 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksUpdateHandler(payload, userId, sessionId);
 							} catch (error) {
+								logger.error(error, "Error in bookmarks update handler")
 								ws.send(JSON.stringify({ type: "ERROR", error }));
 							}
+						} else {
+							logger.info("Invalid bookmarks update payload")
 						}
 					}
 					break;
@@ -202,10 +228,10 @@ wss.on("connection", (ws: any, req: any) => {
 					break;
 
 				default:
-					console.log("Unexpected message");
+					logger.info("Unexpected message");
 			}
 		} catch (error) {
-			console.log("Error parsing the message", error);
+			logger.error("Error parsing the message", error);
 		}
 	});
 });

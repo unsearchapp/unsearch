@@ -3,6 +3,7 @@ import { createUser, User } from "../../db/usersModel";
 import passport from "passport";
 import bcrypt from "bcrypt";
 import "../auth/passport-config";
+import { logger } from "../../utils/logger";
 
 const router = Router();
 
@@ -54,13 +55,13 @@ router.post("/register", async (req, res) => {
 
 		req.login(user, (err) => {
 			if (err) {
-				console.log(err);
+				logger.error(err, "Error login in /register route");
 				res.status(401).json({ message: "Registration failed" });
 			}
 			res.json(user);
 		});
 	} catch (error) {
-		console.error(error);
+		logger.error(error, "Error in registration");
 		res.status(401).json({ message: "Registration failed" });
 	}
 });

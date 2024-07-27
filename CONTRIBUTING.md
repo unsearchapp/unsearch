@@ -54,6 +54,7 @@ PGPASSWORD=mypassword           #
 PGPORT=5432                     #
 JWT_SECRET=supersecret          # Used in the backend
 CLIENT_PORT=3000                # The port of the React client
+LOG_LEVEL='info'                # The log level of the backend, can be: trace, debug, info, warn, error and fatal
 APP_URL="http://backend:5000"   # The backend url
 ```
 
