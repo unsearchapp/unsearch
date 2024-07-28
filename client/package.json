@@ -1,7 +1,6 @@
 {
   "name": "client",
   "version": "0.1.0",
-  "main": "public/electron.js",
   "private": true,
   "proxy": "http://backend:5000/",
   "secure": false,
@@ -33,7 +32,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "rebuild": "electron-rebuild -f -w better-sqlite3",
     "css:watch": "tailwindcss -i ./src/input.css -o ./src/output.css --watch",
     "css:build": "tailwindcss -i ./src/input.css -o ./src/output.css"
   },
