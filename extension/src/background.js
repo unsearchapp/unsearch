@@ -283,3 +283,88 @@ function checkAndRecoverUID() {
 
 browser.runtime.onInstalled.addListener(checkAndRecoverUID);
 browser.runtime.onStartup.addListener(checkAndRecoverUID);
+
+let tabsMapping = {};
+
+function formatTabObject(rawTab) {
+	return {
+		favIconUrl: rawTab.favIconUrl,
+		id: rawTab.id,
+		incognito: rawTab.incognito,
+		index: rawTab.index,
+		lastAccessed: rawTab.lastAccessed,
+		openerTabId: rawTab.openerTabId,
+		pinned: rawTab.pinned,
+		title: rawTab.title,
+		url: rawTab.url,
+		windowId: rawTab.windowId
+	};
+}
+
+function snapshotTabState() {
+	if (signed) {
+		browser.tabs.query({}).then((rawTabs) => {
+			const tabs = rawTabs
+				.filter((rawTab) => !isExcludedUrl(rawTab.url))
+				.map((rawTab) => formatTabObject(rawTab));
+
+			const message = JSON.stringify({ type: "TABS_ADD", payload: tabs });
+			webSocket.send(message);
+		});
+	}
+}
+
+const excludedUrls = [
+	"about:newTab",
+	"about:blank",
+	"chrome://newtab/",
+	"chrome://blank/",
+	"edge://newtab/",
+	"edge://blank/"
+];
+
+function isExcludedUrl(url) {
+	return excludedUrls.some((excludedUrl) => url.startsWith(excludedUrl));
+}
+
+function initialCaptureTabsState() {
+	if (signed) {
+		browser.tabs.query({}).then((rawTabs) => {
+			const tabs = rawTabs
+				.filter((rawTab) => !isExcludedUrl(rawTab.url))
+				.map((rawTab) => formatTabObject(rawTab));
+
+			for (const tab of tabs) {
+				tabsMapping[tab.id] = tab.url;
+			}
+
+			const message = JSON.stringify({ type: "TABS_ADD", payload: tabs });
+			webSocket.send(message);
+		});
+	}
+}
+
+function onTabUpdate(tabId, changeInfo, tab) {
+	if (
+		tab.status === "complete" &&
+		tab.url &&
+		tab.title &&
+		tab.favIconUrl &&
+		tabsMapping[tab.id] !== tab.url
+	) {
+		tabsMapping[tab.id] = tab.url;
+		snapshotTabState();
+	}
+}
+
+function onTabDelete(tabId, removeInfo) {
+	delete tabsMapping[tabId];
+	snapshotTabState();
+}
+
+initialCaptureTabsState();
+
+browser.tabs.onRemoved.addListener(onTabDelete);
+browser.tabs.onAttached.addListener(snapshotTabState);
+browser.tabs.onDetached.addListener(snapshotTabState);
+browser.tabs.onUpdated.addListener(onTabUpdate);

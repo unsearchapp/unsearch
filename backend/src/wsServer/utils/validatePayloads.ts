@@ -7,7 +7,8 @@ import {
 	BookmarksDeletePayload,
 	BookmarksUpdatePayload,
 	BookmarksMovePayload,
-	BookmarksTreeNodePayload
+	BookmarksTreeNodePayload,
+	TabsAddPayload
 } from "../models/payloads";
 import { validate } from "uuid";
 
@@ -113,5 +114,27 @@ export const validateBookmarksMovePayload = (payload: any): payload is Bookmarks
 		typeof payload.moveInfo.oldIndex === "string" &&
 		typeof payload.moveInfo.oldParentId === "string" &&
 		typeof payload.moveInfo.parentId === "string"
+	);
+};
+
+export const validateTabsAddPayload = (payload: any[]): payload is TabsAddPayload[] => {
+	return (
+		Array.isArray(payload) &&
+		payload.every((item) => {
+			return (
+				typeof item === "object" &&
+				item !== null &&
+				typeof item.incognito === "boolean" &&
+				typeof item.index === "number" &&
+				typeof item.pinned === "boolean" &&
+				typeof item.windowId === "number" &&
+				(item.favIconUrl === undefined || typeof item.favIconUrl === "string") &&
+				(item.id === undefined || typeof item.id === "number") &&
+				(item.lastAccessed === undefined || typeof item.lastAccessed === "number") &&
+				(item.openerTabId === undefined || typeof item.openerTabId === "number") &&
+				(item.title === undefined || typeof item.title === "string") &&
+				(item.url === undefined || typeof item.url === "string")
+			);
+		})
 	);
 };

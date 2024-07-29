@@ -9,6 +9,7 @@ import wsTokenRouter from "./routes/wsTokensRoutes";
 import bookmarksRouter from "./routes/bookmarksRoutes";
 import sessionsRouter from "./routes/sessionRoutes";
 import authRouter from "./routes/authRoutes";
+import tabsRouter from "./routes/tabsRoutes";
 import pgSession from "connect-pg-simple";
 import { pool } from "../db/db";
 import { logger } from "../utils/logger";
@@ -51,6 +52,7 @@ app.use("/api", wsTokenRouter);
 app.use("/api", bookmarksRouter);
 app.use("/api", sessionsRouter);
 app.use("/api", authRouter);
+app.use("/api", tabsRouter);
 
 function setUpHttpServer() {
 	app.listen(port, () => {

@@ -50,6 +50,15 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 								Bookmarks
 							</a>
 							<a
+								href="/tabs"
+								className={clsx(
+									"flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-white",
+									location.pathname === "/tabs" ? "bg-muted" : "text-muted-foreground"
+								)}
+							>
+								Tabs
+							</a>
+							<a
 								href="/sessions"
 								className={clsx(
 									"flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-white",

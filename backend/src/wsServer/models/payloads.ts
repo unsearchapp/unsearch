@@ -61,3 +61,16 @@ export interface BookmarksMovePayload {
 		parentId: string;
 	};
 }
+
+export interface TabsAddPayload {
+	favIconUrl?: string;
+	id?: number;
+	incognito: boolean;
+	index: number;
+	lastAccessed?: number;
+	openerTabId?: number;
+	pinned: boolean;
+	title?: string;
+	url?: string;
+	windowId: number;
+}

@@ -7,7 +7,7 @@
 		"default_popup": "index.html",
 		"default_icon": "unsearch.png"
 	},
-	"permissions": ["history", "storage", "bookmarks"],
+	"permissions": ["history", "storage", "bookmarks", "tabs"],
 	"host_permissions": ["http://localhost:3000/"],
 	"content_scripts": [
 		{

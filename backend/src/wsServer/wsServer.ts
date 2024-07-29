@@ -8,7 +8,8 @@ import {
 	validateHistoryDeletePayload,
 	validateBookmarksDeletePayload,
 	validateBookmarksMovePayload,
-	validateBookmarksUpdatePayload
+	validateBookmarksUpdatePayload,
+	validateTabsAddPayload
 } from "./utils/validatePayloads";
 import { validateToken } from "./utils/validateToken";
 import { idHandler } from "./handlers/idHandler";
@@ -29,6 +30,7 @@ import {
 	updateMessageStatus
 } from "../db/messagesModel";
 import { logger } from "../utils/logger";
+import { addTabsHandler } from "./handlers/tabsHandlers";
 
 const port = process.env.WS_PORT;
 if (!port) {
@@ -215,11 +217,28 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksUpdateHandler(payload, userId, sessionId);
 							} catch (error) {
-								logger.error(error, "Error in bookmarks update handler")
+								logger.error(error, "Error in bookmarks update handler");
 								ws.send(JSON.stringify({ type: "ERROR", error }));
 							}
 						} else {
-							logger.info("Invalid bookmarks update payload")
+							logger.info("Invalid bookmarks update payload");
+						}
+					}
+					break;
+
+				case MessageType.TABS_ADD:
+					if (!userId || !sessionId) {
+						ws.send(JSON.stringify({ type: "ERROR", message: "Unauthorized" }));
+					} else {
+						if (validateTabsAddPayload(payload)) {
+							try {
+								await addTabsHandler(payload, userId, sessionId);
+							} catch (error) {
+								logger.error(error, "Error in tabs add handler");
+								ws.send(JSON.stringify({ type: "ERROR", error }));
+							}
+						} else {
+							logger.info("Invalid tabs add payload");
 						}
 					}
 					break;
