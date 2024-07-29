@@ -19,4 +19,4 @@ export const deleteTab = async (_id: string): Promise<number> => {
 	});
 	const data: ApiResponse<number> = await response.json();
 	return data.data;
-}
+};

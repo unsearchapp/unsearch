@@ -93,7 +93,12 @@ export function Tabs() {
 				<h1 className="text-lg font-semibold md:text-2xl">Tabs</h1>
 			</div>
 
-			<InfiniteScroll dataLength={lenItems} next={() => fetchData(lastDate)} hasMore={hasMore} loader={"Loading"}>
+			<InfiniteScroll
+				dataLength={lenItems}
+				next={() => fetchData(lastDate)}
+				hasMore={hasMore}
+				loader={"Loading"}
+			>
 				{tabs &&
 					Object.keys(tabs).map((key, index) => (
 						<>
@@ -149,8 +154,8 @@ export function Tabs() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete tab</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently remove the tab and all
-							associated data.
+							This action cannot be undone. This will permanently remove the tab and all associated
+							data.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

@@ -62,7 +62,7 @@ router.delete("/tabs", requireAuth, async (req, res) => {
 		const _id = req.body._id as string;
 
 		const rowsDeleted: number = await deleteTab(req.user!._id, _id);
-		
+
 		res.json({ data: rowsDeleted });
 	} catch (error) {
 		logger.error("Error in /tabs DELETE route");
