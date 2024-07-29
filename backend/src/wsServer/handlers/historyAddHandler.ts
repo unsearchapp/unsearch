@@ -28,6 +28,6 @@ export const historyAddHandler = async (
 	const historyItems = payload.map((historyItem) =>
 		transformPayloadToHistoryItem(historyItem, userId, sessionId)
 	);
-	
+
 	createHistoryItems(historyItems);
 };

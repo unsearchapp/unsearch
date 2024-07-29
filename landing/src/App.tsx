@@ -88,7 +88,7 @@ function App() {
 								target="_blank"
 								className={`${buttonVariants({
 									variant: "secondary"
-								})} hover:text-inherit flex w-full gap-x-2 sm:w-auto`}
+								})} flex w-full gap-x-2 hover:text-inherit sm:w-auto`}
 							>
 								<GitHubLogoIcon />
 								Star on GitHub
@@ -268,7 +268,7 @@ function App() {
 							target="_blank"
 							className={`${buttonVariants({
 								variant: "default"
-							})} hover:text-inherit mt-6 flex w-full gap-x-2`}
+							})} mt-6 flex w-full gap-x-2 hover:text-inherit`}
 						>
 							<GitHubLogoIcon />
 							Star on GitHub

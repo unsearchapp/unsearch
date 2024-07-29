@@ -7,7 +7,7 @@ export const validateToken = (token: string): { userId: string } | null => {
 			userId: string;
 		};
 	} catch (error) {
-		logger.error(error, "Error on token validation")
+		logger.error(error, "Error on token validation");
 		return null;
 	}
 };
