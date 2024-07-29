@@ -76,7 +76,9 @@ export function Sessions() {
 			<Table className="mt-8">
 				<TableHeader>
 					<TableRow>
-						<TableHead className="w-[100px]">Browser</TableHead>
+						<TableHead>Session</TableHead>
+						<TableHead>Last connected</TableHead>
+						<TableHead>Created</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
 					</TableRow>
 				</TableHeader>
@@ -87,7 +89,18 @@ export function Sessions() {
 								<TableRow>
 									<TableCell className="flex gap-x-2 font-medium">
 										<img src={`./${session.browser}.svg`} className="w-5" />
-										{session.browser}
+										<div className="flex flex-col">
+											<span className="capitalize">{session.browser}</span>
+											<span className="text-gray-400">
+												{session.os}, {session.arch}
+											</span>
+										</div>
+									</TableCell>
+									<TableCell className="text-gray-400">
+										{new Date(session.lastConnectedAt).toLocaleString()}
+									</TableCell>
+									<TableCell className="text-gray-400">
+										{new Date(session.createdAt).toLocaleString()}
 									</TableCell>
 									<TableCell className="text-right">
 										<DropdownMenu>

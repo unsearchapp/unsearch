@@ -31,6 +31,8 @@ import {
 } from "../db/messagesModel";
 import { logger } from "../utils/logger";
 import { addTabsHandler } from "./handlers/tabsHandlers";
+import { throttleFunction } from "./utils/throttleFunction";
+import { updateSessionLastConnectedDate } from "../db/sessionsModel";
 
 const port = process.env.WS_PORT;
 if (!port) {
@@ -59,6 +61,12 @@ export const sendMessageToUser = async (userId: string, sessionId: string, messa
 	}
 };
 
+// Throttle function to update session connected date to ensure it is called at most once every 30s per connection
+const throttledUpdateSessionLastConnectedDate = throttleFunction(
+	updateSessionLastConnectedDate,
+	30000
+);
+
 wss.on("connection", (ws: any, req: any) => {
 	let userId: string | null = null;
 	let sessionId: string | null = null;
@@ -75,6 +83,10 @@ wss.on("connection", (ws: any, req: any) => {
 
 	ws.on("message", async (message: string) => {
 		try {
+			if (sessionId) {
+				throttledUpdateSessionLastConnectedDate.call(ws, sessionId, new Date());
+			}
+
 			const { type, payload } = JSON.parse(message);
 
 			switch (type) {

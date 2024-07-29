@@ -22,7 +22,9 @@ export const validateIdPayload = (payload: any): payload is IdPayload => {
 		payload !== null &&
 		typeof payload.id === "string" &&
 		validate(payload.id) &&
-		typeof payload.browser === "string"
+		typeof payload.browser === "string" &&
+		typeof payload.arch === "string" &&
+		typeof payload.os === "string"
 	);
 };
 

@@ -195,11 +195,14 @@ function connect(sessionId, token) {
 
 			switch (type) {
 				case "AUTH_SUCCESS":
-					const message = JSON.stringify({
-						type: "ID",
-						payload: { id: sessionId, browser: BROWSER }
+					chrome.runtime.getPlatformInfo().then((data) => {
+						const message = JSON.stringify({
+							type: "ID",
+							payload: { id: sessionId, browser: BROWSER, arch: data.arch, os: data.os }
+						});
+						webSocket.send(message);
 					});
-					webSocket.send(message);
+
 					break;
 
 				case "ID_SUCCESS":

@@ -5,6 +5,8 @@ export interface AuthPayload {
 export interface IdPayload {
 	id: string;
 	browser: string;
+	os: string;
+	arch: string;
 }
 
 export interface HistoryAddPayload {

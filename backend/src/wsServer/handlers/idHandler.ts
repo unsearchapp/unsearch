@@ -9,7 +9,7 @@ export const idHandler = async (payload: IdPayload, userId: string): Promise<Ses
 			throw "Session not found";
 		}
 	} else {
-		session = await createSession(payload.id, userId, payload.browser);
+		session = await createSession(payload.id, userId, payload.browser, payload.arch, payload.os);
 	}
 
 	return session;

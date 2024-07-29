@@ -1,6 +1,10 @@
 export interface Session {
 	_id: string;
 	browser: string;
+	arch: string;
+	os: string;
+	createdAt: string;
+	lastConnectedAt: string;
 }
 
 export interface Bookmark {
