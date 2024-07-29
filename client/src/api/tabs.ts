@@ -7,3 +7,16 @@ export const getTabs = async (lastDate: string): Promise<TabData> => {
 	const data: TabData = await response.json();
 	return data;
 };
+
+export const deleteTab = async (_id: string): Promise<number> => {
+	const response = await fetch("/api/tabs", {
+		method: "DELETE",
+		body: JSON.stringify({ _id }),
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json"
+		}
+	});
+	const data: ApiResponse<number> = await response.json();
+	return data.data;
+}

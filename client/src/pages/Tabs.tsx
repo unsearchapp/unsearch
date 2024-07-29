@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
@@ -9,9 +17,11 @@ import {
 	Table,
 	TableBody,
 	TableCell,
-	TableRow
+	TableRow,
+	Toaster,
+	useToast
 } from "ui";
-import { getTabs } from "@/api/tabs";
+import { getTabs, deleteTab } from "@/api/tabs";
 import { PageLayout } from "@/components/Layout";
 import { GroupedTabData } from "@/types/api";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
@@ -22,10 +32,13 @@ export function Tabs() {
 	const [lastDate, setLastDate] = useState<string>("");
 	const [lenItems, setLenItems] = useState<number>(0);
 	const [hasMore, setHasMore] = useState<boolean>(true);
+	const [delTabId, setDelTabId] = useState<string | null>(null);
+	const [openDialog, setOpenDialog] = useState<boolean>(false);
+	const { toast } = useToast();
 
-	async function fetchData() {
+	async function fetchData(date: string) {
 		try {
-			getTabs(lastDate).then(({ data, lastDate, hasMore, len }) => {
+			getTabs(date).then(({ data, lastDate, hasMore, len }) => {
 				setHasMore(hasMore);
 				if (lastDate) {
 					setLastDate(lastDate);
@@ -42,8 +55,37 @@ export function Tabs() {
 	}
 
 	useEffect(() => {
-		fetchData();
+		fetchData(lastDate);
 	}, []);
+
+	function onDeleteSingleTab(e: React.MouseEvent<HTMLElement>, _id: string) {
+		setDelTabId(_id);
+		setOpenDialog(true);
+	}
+
+	function deleteHandler(e: React.MouseEvent<HTMLElement>) {
+		if (delTabId) {
+			deleteTab(delTabId).then((deleted: number) => {
+				if (deleted > 0) {
+					toast({
+						title: "Deleted",
+						description: "Tab successfully deleted"
+					});
+
+					setOpenDialog(false);
+					setDelTabId(null);
+					fetchData("");
+				} else {
+					toast({
+						title: "Something went wrong",
+						description: "Could not delete tab. Please try again later"
+					});
+					setOpenDialog(false);
+					setDelTabId(null);
+				}
+			});
+		}
+	}
 
 	return (
 		<PageLayout>
@@ -51,7 +93,7 @@ export function Tabs() {
 				<h1 className="text-lg font-semibold md:text-2xl">Tabs</h1>
 			</div>
 
-			<InfiniteScroll dataLength={lenItems} next={fetchData} hasMore={hasMore} loader={"Loading"}>
+			<InfiniteScroll dataLength={lenItems} next={() => fetchData(lastDate)} hasMore={hasMore} loader={"Loading"}>
 				{tabs &&
 					Object.keys(tabs).map((key, index) => (
 						<>
@@ -87,6 +129,9 @@ export function Tabs() {
 															<DropdownMenuItem onClick={() => window.open(item.url, "_blank")}>
 																Open
 															</DropdownMenuItem>
+															<DropdownMenuItem onClick={(e) => onDeleteSingleTab(e, item._id)}>
+																Delete
+															</DropdownMenuItem>
 														</DropdownMenuContent>
 													</DropdownMenu>
 												</TableCell>
@@ -98,6 +143,24 @@ export function Tabs() {
 						</>
 					))}
 			</InfiniteScroll>
+
+			<AlertDialog open={openDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete tab</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently remove the tab and all
+							associated data.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={(e) => setOpenDialog(false)}>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={deleteHandler}>Continue</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			<Toaster />
 		</PageLayout>
 	);
 }

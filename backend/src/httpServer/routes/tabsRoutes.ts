@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Tab, getTabsByUser } from "../../db/tabsModel";
+import { Tab, deleteTab, getTabsByUser } from "../../db/tabsModel";
 import { requireAuth } from "../middlewares/requireAuth";
 import { logger } from "../../utils/logger";
 
@@ -54,6 +54,19 @@ router.get("/tabs", requireAuth, async (req, res) => {
 	} catch (error) {
 		logger.error(error, "Error in /tabs GET route");
 		res.status(500).json({ error });
+	}
+});
+
+router.delete("/tabs", requireAuth, async (req, res) => {
+	try {
+		const _id = req.body._id as string;
+
+		const rowsDeleted: number = await deleteTab(req.user!._id, _id);
+		
+		res.json({ data: rowsDeleted });
+	} catch (error) {
+		logger.error("Error in /tabs DELETE route");
+		res.status(500).json({ data: 0 });
 	}
 });
 

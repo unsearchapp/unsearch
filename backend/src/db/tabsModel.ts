@@ -48,3 +48,12 @@ export const getTabsByUser = async (userId: string, lastDate: string, limit: num
 		throw error;
 	}
 };
+
+export const deleteTab = async (userId: string, _id: string): Promise<number> => {
+	try {
+		const deletedRows: number = await knex("Tabs").where({ userId, _id }).del();
+		return deletedRows;
+	} catch (error) {
+		throw error;
+	}
+};
