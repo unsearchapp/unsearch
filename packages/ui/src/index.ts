@@ -69,3 +69,12 @@ export {
 	TableCaption
 } from "./components/ui/table";
 export { Label } from "./components/ui/label";
+export {
+	Breadcrumb,
+	BreadcrumbList,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+	BreadcrumbEllipsis
+} from "./components/ui/breadcrumb";

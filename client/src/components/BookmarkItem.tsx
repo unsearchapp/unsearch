@@ -15,7 +15,7 @@ import { Bookmark } from "@/types/api";
 
 interface BookmarkItemProps {
 	bookmark: Bookmark;
-	setCurrentFolder: React.Dispatch<React.SetStateAction<Bookmark | null>>;
+	setCurrentFolder: (bookmark: Bookmark) => void;
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	showDropdown: boolean;
 }
@@ -26,7 +26,7 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 	onDelete,
 	showDropdown
 }) => {
-	const handleDoubleClick = () => {
+	const handleDoubleClick = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {
 		if (bookmark.url) {
 			window.open(bookmark.url, "_blank");
 		} else {

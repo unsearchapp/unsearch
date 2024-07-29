@@ -1,20 +1,35 @@
 import React from "react";
-import { Button, Table, TableBody, TableHead, TableHeader, TableRow } from "ui";
+import {
+	Table,
+	TableBody,
+	TableHead,
+	TableHeader,
+	TableRow,
+	Breadcrumb,
+	BreadcrumbList,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbSeparator
+} from "ui";
 import { BookmarkItem } from "./BookmarkItem";
 import { Bookmark } from "../types/api";
 
 interface BookmarkListProps {
 	bookmarks: Bookmark[];
 	currentFolder: Bookmark | null;
-	setCurrentFolder: React.Dispatch<React.SetStateAction<Bookmark | null>>;
+	setCurrentFolder: (bookmark: Bookmark) => void;
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
+	path: Bookmark[];
+	updatePath: (bookmark: Bookmark | null) => void;
 }
 
 export const BookmarkList: React.FC<BookmarkListProps> = ({
 	bookmarks,
 	currentFolder,
 	setCurrentFolder,
-	onDelete
+	onDelete,
+	path,
+	updatePath
 }) => {
 	// Filter bookmarks to only show the ones in the current folder
 	const filteredBookmarks = bookmarks.filter((bookmark) =>
@@ -23,7 +38,29 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 
 	return (
 		<div>
-			{currentFolder && <Button onClick={() => setCurrentFolder(null)}>Back</Button>}
+			<Breadcrumb>
+				<BreadcrumbList>
+					<BreadcrumbItem>
+						<BreadcrumbLink className="hover:cursor-pointer" onClick={(e) => updatePath(null)}>
+							All bookmarks
+						</BreadcrumbLink>
+					</BreadcrumbItem>
+					{path.length > 0 ? <BreadcrumbSeparator /> : null}
+					{path.map((bookmark, index) => (
+						<>
+							<BreadcrumbItem>
+								<BreadcrumbLink
+									className="hover:cursor-pointer"
+									onClick={(e) => updatePath(bookmark)}
+								>
+									{bookmark.parentId ? bookmark.title : "Root folder"}
+								</BreadcrumbLink>
+							</BreadcrumbItem>
+							{index < path.length - 1 ? <BreadcrumbSeparator /> : null}
+						</>
+					))}
+				</BreadcrumbList>
+			</Breadcrumb>
 
 			<Table className="mt-8">
 				<TableHeader>

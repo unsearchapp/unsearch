@@ -19,6 +19,7 @@ import { BookmarkList } from "@/components/BookmarkList";
 export function Bookmarks() {
 	const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 	const [currentFolder, setCurrentFolder] = useState<Bookmark | null>(null);
+	const [path, setPath] = useState<Bookmark[]>([]);
 	const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark | null>(null);
 	const [openDialog, setOpenDialog] = useState<boolean>(false);
 	const { toast } = useToast();
@@ -54,6 +55,26 @@ export function Bookmarks() {
 		}
 	}
 
+	function updateCurrentFolder(bookmark: Bookmark) {
+		setCurrentFolder(bookmark);
+		setPath((prevBookmarks) => [...prevBookmarks, bookmark]);
+	}
+
+	function updatePath(bookmark: Bookmark | null) {
+		if (bookmark) {
+			setCurrentFolder(bookmark);
+			const pathIndex = path.findIndex((item) => item._id === bookmark._id);
+
+			if (pathIndex !== -1) {
+				setPath(path.slice(0, pathIndex + 1));
+			}
+		} else {
+			// Return to all bookmarks view
+			setCurrentFolder(null);
+			setPath([]);
+		}
+	}
+
 	return (
 		<PageLayout>
 			<div className="flex items-center">
@@ -63,7 +84,9 @@ export function Bookmarks() {
 			<BookmarkList
 				bookmarks={bookmarks}
 				currentFolder={currentFolder}
-				setCurrentFolder={setCurrentFolder}
+				setCurrentFolder={updateCurrentFolder}
+				path={path}
+				updatePath={updatePath}
 				onDelete={deleteAction}
 			/>
 
