@@ -8,14 +8,14 @@ export const Register = () => {
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 
+	const urlParams = new URLSearchParams(window.location.search);
+	const fromExtension = urlParams.get("fromExtension");
+
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		try {
 			await register(email, password);
-
-			const urlParams = new URLSearchParams(window.location.search);
-			const fromExtension = urlParams.get("fromExtension");
 
 			if (fromExtension === "true") {
 				window.postMessage({ type: "signupSuccess", text: "success" }, "*");
@@ -66,7 +66,7 @@ export const Register = () => {
 					</form>
 					<div className="mt-4 text-center text-sm">
 						Already have an account?{" "}
-						<a href="/login" className="underline">
+						<a href={`/login${fromExtension ? "?fromExtension=true" : ""}`} className="underline">
 							Login
 						</a>
 					</div>

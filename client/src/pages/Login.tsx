@@ -8,14 +8,14 @@ export function Login() {
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
 
+	const urlParams = new URLSearchParams(window.location.search);
+	const fromExtension = urlParams.get("fromExtension");
+
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
 		try {
 			await login(email, password);
-
-			const urlParams = new URLSearchParams(window.location.search);
-			const fromExtension = urlParams.get("fromExtension");
 
 			if (fromExtension === "true") {
 				window.postMessage({ type: "signupSuccess", text: "success" }, "*");
@@ -64,7 +64,10 @@ export function Login() {
 					</form>
 					<div className="mt-4 text-center text-sm">
 						Don&apos;t have an account?{" "}
-						<a href="/register" className="underline">
+						<a
+							href={`/register${fromExtension ? "?fromExtension=true" : ""}`}
+							className="underline"
+						>
 							Sign up
 						</a>
 					</div>
