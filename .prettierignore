@@ -11,3 +11,4 @@ docker-compose.yml
 
 .env
 .prettierrc.js
+*.bin.gz
