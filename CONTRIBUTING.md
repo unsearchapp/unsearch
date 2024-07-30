@@ -44,18 +44,19 @@ Make sure you have installed [Docker Compose](https://docs.docker.com/compose/in
 3. Create an `.env` file on the root folder:
 
 ```
-WS_PORT=1234                    # Port of Websocket server
-HTTP_PORT=5000                  # Por of http server
-NODE_ENV=development            #
-PGUSER=myuser                   # PostgreSQL settings
-PGHOST=postgres                 #     |         |
-PGDATABASE=mydb                 #     ⌄         ⌄
-PGPASSWORD=mypassword           #
-PGPORT=5432                     #
-JWT_SECRET=supersecret          # Used in the backend
-CLIENT_PORT=3000                # The port of the React client
-LOG_LEVEL='info'                # The log level of the backend, can be: trace, debug, info, warn, error and fatal
-APP_URL="http://backend:5000"   # The backend url
+WS_PORT=1234                         # Port of Websocket server
+HTTP_PORT=5000                       # Por of http server
+NODE_ENV=development                 #
+PGUSER=myuser                        # PostgreSQL settings
+PGHOST=postgres                      #     |         |
+PGDATABASE=mydb                      #     ⌄         ⌄
+PGPASSWORD=mypassword                #
+PGPORT=5432                          #
+JWT_SECRET=supersecret               # Used in the backend
+CLIENT_PORT=3000                     # The port of the React client
+LOG_LEVEL='info'                     # The log level of the backend, can be: trace, debug, info, warn, error and fatal
+APP_URL="http://backend:5000"        # The backend url
+WORD2VEC_URL="http://word2vec:5001"  # The url of the word embedding service
 ```
 
 4. Run with Docker Compose: `docker-compose up --build`

@@ -25,11 +25,78 @@ export const getHistoryItemsByUser = async (
 			.orderBy("lastVisitTime", "desc")
 			.modify(function (builder: any) {
 				if (query) {
-					builder.whereILike("title", `${query}%`).orWhereILike("url", `${query}%`);
+					builder.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
 				}
 			});
 
 		const historyItems: HistoryItem[] = await knexQuery;
+		return historyItems;
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const fuzzyHistoryItemsSearch = async (
+	userId: string,
+	query?: string
+): Promise<HistoryItem[]> => {
+	try {
+		const knexQuery = knex("HistoryItems")
+			.select()
+			.where({ userId })
+			.where(function () {
+				this.whereRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) > ?", [
+					query,
+					query,
+					0.3
+				]).orWhere(function () {
+					this.whereRaw("word_similarity(title, ?) = 0", [query]).orWhereRaw(
+						"word_similarity(url, ?) = 0",
+						[query]
+					);
+				});
+			})
+			.orderByRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) DESC", [
+				query,
+				query
+			])
+			.orderBy("lastVisitTime", "desc");
+
+		const historyItems: HistoryItem[] = await knexQuery;
+		return historyItems;
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const semanticHistoryItemsSearch = async (
+	userId: string,
+	wordsWithSimilarities: Map<string, number>
+): Promise<HistoryItem[]> => {
+	try {
+		const knexQuery = knex("HistoryItems")
+			.select()
+			.where({ userId })
+			.andWhere((builder) => {
+				wordsWithSimilarities.forEach((_, word) => {
+					builder.orWhere("title", "like", `%${word}%`).orWhere("url", "like", `%${word}%`);
+				});
+			})
+			.orderBy("lastVisitTime", "desc");
+
+		const historyItems: HistoryItem[] = await knexQuery;
+
+		// Calculate similarity and rank results
+		const results = historyItems.map((log) => {
+			const titleSimilarity = (log.title && wordsWithSimilarities.get(log.title)) || 0;
+			const urlSimilarity = (log.url && wordsWithSimilarities.get(log.url)) || 0;
+			const combinedSimilarity = (titleSimilarity + urlSimilarity) / 2;
+
+			return { ...log, similarity: combinedSimilarity };
+		});
+
+		results.sort((a, b) => b.similarity - a.similarity);
+
 		return historyItems;
 	} catch (error) {
 		throw error;

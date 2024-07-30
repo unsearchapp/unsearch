@@ -42,6 +42,7 @@ services:
       - PGPORT
       - JWT_SECRET
       - LOG_LEVEL
+      - WORD2VEC_URL
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,6 +62,19 @@ services:
       - /usr/src/app/client/node_modules
       - /usr/src/app/packages/node_modules
       - ./packages:/usr/src/app/packages
+
+  word2vec:
+    build:
+      context: ./word2vec
+      dockerfile: Dockerfile
+    environment:
+      - WORD2VEC_PORT
+    volumes:
+      - ./word2vec:/app
+    ports:
+      - "${WORD2VEC_PORT}:${WORD2VEC_PORT}"
+    depends_on:
+      - postgres
 
 
 volumes:

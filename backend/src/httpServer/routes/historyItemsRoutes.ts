@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { getHistoryItemsByUser, deleteHistoryItems } from "../../db/historyItemsModel";
+import {
+	getHistoryItemsByUser,
+	fuzzyHistoryItemsSearch,
+	deleteHistoryItems,
+	semanticHistoryItemsSearch,
+	HistoryItem
+} from "../../db/historyItemsModel";
 import { requireAuth } from "../middlewares/requireAuth";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
@@ -11,7 +17,35 @@ router.get("/history-items", requireAuth, async (req, res) => {
 		const query = req.query.q as string;
 		const searchType = req.query.searchType as string;
 
-		const historyItems = await getHistoryItemsByUser(req.user!._id, query);
+		let historyItems: HistoryItem[] = [];
+		switch (searchType) {
+			case "exact":
+				historyItems = await getHistoryItemsByUser(req.user!._id, query);
+				break;
+
+			case "fuzzy":
+				historyItems = await fuzzyHistoryItemsSearch(req.user!._id, query);
+				break;
+
+			case "semantic":
+				if (query) {
+					const response = await fetch(`${process.env.WORD2VEC_URL}/similarity?query=${query}`);
+					const data = await response.json();
+
+					// Extract words and their similarities
+					const wordsWithSimilarities = new Map<string, number>();
+					data.forEach(([word, similarity]: [string, number]) => {
+						wordsWithSimilarities.set(word, similarity);
+					});
+
+					historyItems = await semanticHistoryItemsSearch(req.user!._id, wordsWithSimilarities);
+				} else {
+					historyItems = await getHistoryItemsByUser(req.user!._id, query); // Fetch all history
+				}
+
+				break;
+		}
+
 		res.json({ data: historyItems });
 	} catch (error) {
 		logger.error(error, "Error in /history-items GET route");
