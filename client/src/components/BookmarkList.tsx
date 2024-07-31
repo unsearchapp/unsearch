@@ -33,9 +33,11 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 	path,
 	updatePath
 }) => {
-	// Filter bookmarks to only show the ones in the current folder
+	// Filter bookmarks to only show the ones in the current folder & in the same session as the current folder
 	const filteredBookmarks = bookmarks.filter((bookmark) =>
-		currentFolder ? bookmark.parentId === currentFolder.id : !bookmark.parentId
+		currentFolder
+			? bookmark.parentId === currentFolder.id && bookmark.sessionId === currentFolder.sessionId
+			: !bookmark.parentId
 	);
 
 	return (
