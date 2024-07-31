@@ -1,9 +1,9 @@
 <p align="center">
 <img src="packages/assets/images/unsearch.png" alt="drawing" width="150" height="150" /></p>
 <h1 align="center"><b>Unsearch</b></h1>
-<p align="center">A privacy-friendly browser data manager.</br><a href="https://unsearch.app">unsearch.app »</a></p>
+<p align="center">A privacy-friendly browsing data manager.</br><a href="https://unsearch.app">unsearch.app »</a></p>
 
-Unsearch is an open source cross-browser manager for your browsing activity.
+Unsearch is an open-source, cross-browser manager for browsing activity.
 
 > UPDATE: Unsearch is currently under development and in pre-alpha version (July 23th 2024).
 
