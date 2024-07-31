@@ -107,12 +107,12 @@ export const semanticHistoryItemsSearch = async (
 		const historyItems: HistoryItem[] = await knexQuery;
 
 		// Calculate similarity and rank results
-		const results = historyItems.map((log) => {
-			const titleSimilarity = (log.title && wordsWithSimilarities.get(log.title)) || 0;
-			const urlSimilarity = (log.url && wordsWithSimilarities.get(log.url)) || 0;
+		const results = historyItems.map((item) => {
+			const titleSimilarity = (item.title && wordsWithSimilarities.get(item.title)) || 0;
+			const urlSimilarity = (item.url && wordsWithSimilarities.get(item.url)) || 0;
 			const combinedSimilarity = (titleSimilarity + urlSimilarity) / 2;
 
-			return { ...log, similarity: combinedSimilarity };
+			return { ...item, similarity: combinedSimilarity };
 		});
 
 		results.sort((a, b) => b.similarity - a.similarity);
