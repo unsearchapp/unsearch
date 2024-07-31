@@ -12,10 +12,11 @@ import {
 	BreadcrumbSeparator
 } from "ui";
 import { BookmarkItem } from "./BookmarkItem";
-import { Bookmark } from "../types/api";
+import { Bookmark, Session } from "../types/api";
 
 interface BookmarkListProps {
 	bookmarks: Bookmark[];
+	sessions: Session[];
 	currentFolder: Bookmark | null;
 	setCurrentFolder: (bookmark: Bookmark) => void;
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
@@ -25,6 +26,7 @@ interface BookmarkListProps {
 
 export const BookmarkList: React.FC<BookmarkListProps> = ({
 	bookmarks,
+	sessions,
 	currentFolder,
 	setCurrentFolder,
 	onDelete,
@@ -81,6 +83,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 						return (
 							<BookmarkItem
 								key={bookmark._id}
+								session={sessions.find((session) => session._id === bookmark.sessionId)}
 								bookmark={bookmark}
 								setCurrentFolder={setCurrentFolder}
 								onDelete={onDelete}

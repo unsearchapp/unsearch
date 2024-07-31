@@ -11,10 +11,11 @@ import {
 	DropdownMenuTrigger
 } from "ui";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
-import { Bookmark } from "@/types/api";
+import { Bookmark, Session } from "@/types/api";
 
 interface BookmarkItemProps {
 	bookmark: Bookmark;
+	session: Session | undefined;
 	setCurrentFolder: (bookmark: Bookmark) => void;
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	showDropdown: boolean;
@@ -22,6 +23,7 @@ interface BookmarkItemProps {
 
 export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 	bookmark,
+	session,
 	setCurrentFolder,
 	onDelete,
 	showDropdown
@@ -53,7 +55,20 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 						/>
 					</svg>
 				)}
-				{bookmark.id === "0" ? "Root" : bookmark.title}
+				{!bookmark.parentId ? (
+					session ? (
+						<div className="flex gap-x-2 font-medium">
+							<span className="capitalize">{session.browser}</span>
+							<span className="text-gray-400">
+								{session.os}, {session.arch}
+							</span>
+						</div>
+					) : (
+						"Root"
+					)
+				) : (
+					bookmark.title
+				)}
 				<p className="truncate font-normal text-gray-500">{bookmark.url}</p>
 			</TableCell>
 			<TableCell className="text-right">

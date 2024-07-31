@@ -13,11 +13,13 @@ import {
 } from "ui";
 import { getBookmarks, deleteBookmark } from "@/api/bookmarks";
 import { PageLayout } from "@/components/Layout";
-import { Bookmark } from "@/types/api";
+import { Bookmark, Session } from "@/types/api";
 import { BookmarkList } from "@/components/BookmarkList";
+import { getSessions } from "@/api/sessions";
 
 export function Bookmarks() {
 	const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+	const [sessions, setSessions] = useState<Session[]>([]);
 	const [currentFolder, setCurrentFolder] = useState<Bookmark | null>(null);
 	const [path, setPath] = useState<Bookmark[]>([]);
 	const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark | null>(null);
@@ -25,9 +27,8 @@ export function Bookmarks() {
 	const { toast } = useToast();
 
 	function fetchData() {
-		getBookmarks().then((data) => {
-			setBookmarks(data);
-		});
+		getBookmarks().then((data) => setBookmarks(data));
+		getSessions().then((sessions) => setSessions(sessions));
 	}
 
 	useEffect(() => {
@@ -83,6 +84,7 @@ export function Bookmarks() {
 
 			<BookmarkList
 				bookmarks={bookmarks}
+				sessions={sessions}
 				currentFolder={currentFolder}
 				setCurrentFolder={updateCurrentFolder}
 				path={path}
