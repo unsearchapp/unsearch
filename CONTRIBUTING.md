@@ -58,9 +58,9 @@ LOG_LEVEL='info'                     # The log level of the backend, can be: tra
 APP_URL="http://backend:5000"        # The backend url
 WORD2VEC_URL="http://word2vec:5001"  # The url of the word embedding service
 ```
+To enable semantic search it is necessary to download `GoogleNews-vectors-negative300.bin.gz` and store the file inside `word2vec/`. If the file is not present, the semantic search will default to an exact search. Link to [download from Kaggle](https://www.kaggle.com/datasets/leadbest/googlenewsvectorsnegative300/data). 
 
 4. Run with Docker Compose: `docker-compose up --build`
-
 5. Install dependencies of extension: `cd extension && pnpm i`
 6. Create an `.env` file on the folder `/extensions`:
 
@@ -70,9 +70,9 @@ VITE_BACKEND_URL=http://localhost:5000  # Url of the http server
 VITE_WS_URL=ws://localhost:1234         # Url of the websocket server
 ```
 
-6. To start dev mode: `pnpm dev:firefox`
+7. To start dev mode: `pnpm dev:firefox`
 
-7. To build the extension: `pnpm build`
+8. To build the extension: `pnpm build`
 
 After building, you can load the `/dist` folder as an unpackged extension on Google Chrome, Firefox and Microsoft Edge.
 
