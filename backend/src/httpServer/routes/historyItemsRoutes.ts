@@ -16,15 +16,22 @@ router.get("/history-items", requireAuth, async (req, res) => {
 	try {
 		const query = req.query.q as string;
 		const searchType = req.query.searchType as string;
+		const rawSessions = req.query.s as string | undefined | string[];
+
+		const arraySessions: string[] = Array.isArray(rawSessions)
+			? rawSessions
+			: rawSessions
+				? [rawSessions]
+				: [];
 
 		let historyItems: HistoryItem[] = [];
 		switch (searchType) {
 			case "exact":
-				historyItems = await getHistoryItemsByUser(req.user!._id, query);
+				historyItems = await getHistoryItemsByUser(req.user!._id, arraySessions, query);
 				break;
 
 			case "fuzzy":
-				historyItems = await fuzzyHistoryItemsSearch(req.user!._id, query);
+				historyItems = await fuzzyHistoryItemsSearch(req.user!._id, arraySessions, query);
 				break;
 
 			case "semantic":
@@ -38,9 +45,13 @@ router.get("/history-items", requireAuth, async (req, res) => {
 						wordsWithSimilarities.set(word, similarity);
 					});
 
-					historyItems = await semanticHistoryItemsSearch(req.user!._id, wordsWithSimilarities);
+					historyItems = await semanticHistoryItemsSearch(
+						req.user!._id,
+						arraySessions,
+						wordsWithSimilarities
+					);
 				} else {
-					historyItems = await getHistoryItemsByUser(req.user!._id, query); // Fetch all history
+					historyItems = await getHistoryItemsByUser(req.user!._id, arraySessions, query); // Fetch all history
 				}
 
 				break;

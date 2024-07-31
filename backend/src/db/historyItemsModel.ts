@@ -1,4 +1,5 @@
 import knex from "./db";
+import { Knex } from "knex";
 
 export interface HistoryItem {
 	_id: string;
@@ -16,6 +17,7 @@ export type HistoryItemInsert = Omit<HistoryItem, "_id">;
 
 export const getHistoryItemsByUser = async (
 	userId: string,
+	sessionsIds: string[],
 	query?: string
 ): Promise<HistoryItem[]> => {
 	try {
@@ -23,9 +25,15 @@ export const getHistoryItemsByUser = async (
 			.select()
 			.where({ userId })
 			.orderBy("lastVisitTime", "desc")
-			.modify(function (builder: any) {
+			.modify(function (builder: Knex.QueryBuilder) {
+				if (sessionsIds.length > 0) {
+					builder.whereIn("sessionId", sessionsIds);
+				}
 				if (query) {
-					builder.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
+					// builder.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
+					builder.where((qb: Knex.QueryBuilder) => {
+						qb.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
+					});
 				}
 			});
 
@@ -38,12 +46,18 @@ export const getHistoryItemsByUser = async (
 
 export const fuzzyHistoryItemsSearch = async (
 	userId: string,
+	sessionsIds: string[],
 	query?: string
 ): Promise<HistoryItem[]> => {
 	try {
 		const knexQuery = knex("HistoryItems")
 			.select()
 			.where({ userId })
+			.modify(function (builder: Knex.QueryBuilder) {
+				if (sessionsIds.length > 0) {
+					builder.whereIn("sessionId", sessionsIds);
+				}
+			})
 			.where(function () {
 				this.whereRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) > ?", [
 					query,
@@ -71,12 +85,18 @@ export const fuzzyHistoryItemsSearch = async (
 
 export const semanticHistoryItemsSearch = async (
 	userId: string,
+	sessionsIds: string[],
 	wordsWithSimilarities: Map<string, number>
 ): Promise<HistoryItem[]> => {
 	try {
 		const knexQuery = knex("HistoryItems")
 			.select()
 			.where({ userId })
+			.modify(function (builder: Knex.QueryBuilder) {
+				if (sessionsIds.length > 0) {
+					builder.whereIn("sessionId", sessionsIds);
+				}
+			})
 			.andWhere((builder) => {
 				wordsWithSimilarities.forEach((_, word) => {
 					builder.orWhere("title", "like", `%${word}%`).orWhere("url", "like", `%${word}%`);

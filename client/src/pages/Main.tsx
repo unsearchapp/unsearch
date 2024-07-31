@@ -13,20 +13,35 @@ import {
 	SelectTrigger,
 	SelectValue,
 	Label,
-	Button
+	Button,
+	MultiSelect
 } from "ui";
+import { getSessions } from "@/api/sessions";
 
 export const Main = () => {
 	const [query, setQuery] = useState<string>("");
 	const [data, setData] = useState<HistoryItem[]>([]);
+	const [sessions, setSessions] = useState<{ value: string; label: string; icon: string }[]>([]);
 	const [searchType, setSearchType] = useState<string>("exact");
 	const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
+	const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
 
 	const fetchData = async () => {
 		setLoadingSearch(true);
-		await getHistoryItems(query, searchType).then((data) => setData(data));
+		await getHistoryItems(query, searchType, selectedSessions).then((data) => setData(data));
 		setLoadingSearch(false);
 	};
+
+	useEffect(() => {
+		getSessions().then((sessions) => {
+			const updatedSessions = sessions.map((session) => ({
+				value: session._id,
+				label: session.browser.charAt(0).toUpperCase() + session.browser.slice(1),
+				icon: `./${session.browser}.svg`
+			}));
+			setSessions(updatedSessions);
+		});
+	}, []);
 
 	useEffect(() => {
 		if (searchType !== "semantic") {
@@ -64,6 +79,19 @@ export const Main = () => {
 							</SelectContent>
 						</Select>
 					</div>
+
+					<div>
+						<Label className="text-muted-foreground">Sessions</Label>
+						<MultiSelect
+							options={sessions}
+							onValueChange={setSelectedSessions}
+							defaultValue={selectedSessions}
+							placeholder="Filter by sessions"
+							variant="inverted"
+							maxCount={3}
+						/>
+					</div>
+
 					<Button onClick={fetchData} disabled={loadingSearch}>
 						{loadingSearch && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
 						Search
