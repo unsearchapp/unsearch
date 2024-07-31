@@ -12,6 +12,7 @@ import {
 } from "ui";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { Bookmark, Session } from "@/types/api";
+import { FIREFOX_SYS_BOOKMARKS_IDS, CHROMIUM_BOOKMARKS_IDS } from "@/utils/constants";
 
 interface BookmarkItemProps {
 	bookmark: Bookmark;
@@ -19,6 +20,7 @@ interface BookmarkItemProps {
 	setCurrentFolder: (bookmark: Bookmark) => void;
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	showDropdown: boolean;
+	onEdit: (bookmark: Bookmark) => void;
 }
 
 export const BookmarkItem: React.FC<BookmarkItemProps> = ({
@@ -26,7 +28,8 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 	session,
 	setCurrentFolder,
 	onDelete,
-	showDropdown
+	showDropdown,
+	onEdit
 }) => {
 	const handleDoubleClick = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {
 		if (bookmark.url) {
@@ -35,6 +38,11 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 			setCurrentFolder(bookmark);
 		}
 	};
+
+	const isSystemFolder =
+		FIREFOX_SYS_BOOKMARKS_IDS.includes(bookmark.id) ||
+		CHROMIUM_BOOKMARKS_IDS.includes(bookmark.id) ||
+		bookmark.title === "Deleted favorites"; // Edge temporal folder
 
 	return (
 		<TableRow onDoubleClick={handleDoubleClick} className="cursor-pointer">
@@ -72,7 +80,7 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 				<p className="truncate font-normal text-gray-500">{bookmark.url}</p>
 			</TableCell>
 			<TableCell className="text-right">
-				{showDropdown && (
+				{!isSystemFolder && (
 					<DropdownMenu>
 						<DropdownMenuTrigger>
 							<DotsVerticalIcon />
@@ -80,7 +88,10 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 						<DropdownMenuContent>
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem onClick={(e) => onDelete(e, bookmark)}>Delete</DropdownMenuItem>
+							<DropdownMenuItem onClick={(e) => onEdit(bookmark)}>Edit</DropdownMenuItem>
+							{showDropdown && (
+								<DropdownMenuItem onClick={(e) => onDelete(e, bookmark)}>Delete</DropdownMenuItem>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				)}

@@ -219,10 +219,19 @@ function connect(sessionId, token) {
 					disconnect();
 					break;
 
-				case "BOOKMARKS_REMOVE":
+				case "BOOKMARKS_REMOVE": {
 					const id = payload.id;
 					browser.bookmarks.remove(id); // remove bookmark / empty folder
 					break;
+				}
+				
+				case "BOOKMARKS_UPDATE": {
+					const id = payload.id;
+					const changes = payload.changes;
+
+					browser.bookmarks.update(id, changes);
+					break;
+				}
 
 				case "HISTORY_REMOVE":
 					const url = payload.url;

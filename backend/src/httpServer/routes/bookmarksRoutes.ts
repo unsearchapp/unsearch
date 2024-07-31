@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { getBookmarksByUser, deleteBookmarkById } from "../../db/bookmarksModel";
+import { getBookmarksByUser, deleteBookmarkById, updateBookmark } from "../../db/bookmarksModel";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 
@@ -12,6 +12,27 @@ router.get("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 		res.json({ data: bookmarks });
 	} catch (error) {
 		logger.error(error, "Error in /bookmarks GET route");
+		res.status(500).json({ error });
+	}
+});
+
+router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
+	try {
+		const userId = req.user!._id;
+		const { sessionId, id, title, url } = req.body;
+
+		const updatedRows = await updateBookmark(id, userId, sessionId, url, title);
+
+		if (updatedRows > 0) {
+			// send message to extension
+			const payload = { id, changes: { title, url } };
+			const message = JSON.stringify({ type: "BOOKMARKS_UPDATE", payload });
+			sendMessageToUser(userId, sessionId, message);
+		}
+
+		res.json({ data: updatedRows });
+	} catch (error) {
+		logger.error(error, "Error in /bookmarks POST route");
 		res.status(500).json({ error });
 	}
 });

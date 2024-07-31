@@ -22,6 +22,7 @@ interface BookmarkListProps {
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	path: Bookmark[];
 	updatePath: (bookmark: Bookmark | null) => void;
+	setBookmarkToEdit: (bookmark: Bookmark) => void;
 }
 
 export const BookmarkList: React.FC<BookmarkListProps> = ({
@@ -31,7 +32,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 	setCurrentFolder,
 	onDelete,
 	path,
-	updatePath
+	updatePath,
+	setBookmarkToEdit
 }) => {
 	// Filter bookmarks to only show the ones in the current folder & in the same session as the current folder
 	const filteredBookmarks = bookmarks.filter((bookmark) =>
@@ -78,9 +80,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 						const hasChildren = bookmark.url
 							? false
 							: bookmarks.some((child) => child.parentId === bookmark.id); // skip root folder
-						const showDropdown =
-							Boolean(bookmark.url) ||
-							(!bookmark.url && !hasChildren && Boolean(bookmark.parentId)); // Show delete in dropdown on bookmarks and empty folders
+
+						// Show delete in dropdown on bookmarks and empty folders
+						const showDropdown = Boolean(bookmark.url) || !hasChildren;
 
 						return (
 							<BookmarkItem
@@ -90,6 +92,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 								setCurrentFolder={setCurrentFolder}
 								onDelete={onDelete}
 								showDropdown={showDropdown}
+								onEdit={setBookmarkToEdit}
 							/>
 						);
 					})}
