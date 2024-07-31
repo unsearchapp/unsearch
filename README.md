@@ -18,7 +18,7 @@ In today's digital age, many of us frequently switch between different web brows
 ## Roadmap
 
 - [x] Bookmarks and search history discovery.
-- [ ] Fuzzy and semantic search.
+- [x] Fuzzy and semantic search.
 - [ ] End-to-end encryption.
 - [ ] Export and import bookmarks & search history.
 - [ ] Advanced search filters.
@@ -37,3 +37,4 @@ Please refer to the [contributing guide](CONTRIBUTING.md) for how to install Uns
 - `/landing`: A landing page built with React.
 - `/packages/assets`: Some shared assets
 - `/packages/ui`: A set of shared components built with React, used in both the `extension` and `client`
+- `/word2vec`: A Flask api that serves a pretrained word embedding for semantic search.
