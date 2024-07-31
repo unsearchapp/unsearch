@@ -90,3 +90,27 @@ export {
 	SelectScrollUpButton,
 	SelectScrollDownButton
 } from "./components/ui/select";
+export {
+	Dialog,
+	DialogPortal,
+	DialogOverlay,
+	DialogTrigger,
+	DialogClose,
+	DialogContent,
+	DialogHeader,
+	DialogFooter,
+	DialogTitle,
+	DialogDescription
+} from "./components/ui/dialog";
+export {
+	Command,
+	CommandDialog,
+	CommandInput,
+	CommandList,
+	CommandEmpty,
+	CommandGroup,
+	CommandItem,
+	CommandShortcut,
+	CommandSeparator
+} from "./components/ui/command";
+export { MultiSelect } from "./components/ui/multi-select";
