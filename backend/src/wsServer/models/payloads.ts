@@ -49,8 +49,8 @@ export interface BookmarksDeletePayload {
 export interface BookmarksUpdatePayload {
 	id: string;
 	updateInfo: {
-		title: string;
-		url: string;
+		title?: string;
+		url?: string;
 	};
 }
 

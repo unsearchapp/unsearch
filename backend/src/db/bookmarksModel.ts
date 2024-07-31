@@ -58,15 +58,35 @@ export const getBookmarksByUser = async (userId: string): Promise<PublicBookmark
 	}
 };
 
+interface UpdateFields {
+	title?: string;
+	url?: string;
+}
+
 export const updateBookmark = async (
 	id: string,
 	userId: string,
 	sessionId: string,
-	url: string,
-	title: string
-) => {
+	url: string | undefined,
+	title: string | undefined
+): Promise<number> => {
 	try {
-		await knex("Bookmarks").where({ id, userId, sessionId }).update({ title, url });
+		const updateData: UpdateFields = {};
+		if (title !== undefined) {
+			updateData.title = title;
+		}
+		if (url !== undefined) {
+			updateData.url = url;
+		}
+
+		// Ensure there's at least one field to update
+		if (Object.keys(updateData).length > 0) {
+			const rowsUpdated: number = await knex("Bookmarks")
+				.where({ id, userId, sessionId })
+				.update({ title, url });
+			return rowsUpdated;
+		}
+		return 0;
 	} catch (error) {
 		throw error;
 	}

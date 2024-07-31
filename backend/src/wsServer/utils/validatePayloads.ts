@@ -100,8 +100,8 @@ export const validateBookmarksUpdatePayload = (payload: any): payload is Bookmar
 		typeof payload.id === "string" &&
 		typeof payload.updateInfo === "object" &&
 		payload.updateInfo !== null &&
-		typeof payload.updateInfo.title === "string" &&
-		typeof payload.updateInfo.url === "string"
+		(typeof payload.updateInfo.title === "string" || payload.updateInfo.title === undefined) &&
+		(typeof payload.updateInfo.url === "string" || payload.updateInfo.url === undefined)
 	);
 };
 
