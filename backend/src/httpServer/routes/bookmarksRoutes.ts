@@ -21,7 +21,7 @@ router.get("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 	}
 });
 
-router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
+router.patch("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 	try {
 		const userId = req.user!._id;
 		const { sessionId, id, title, url } = req.body;

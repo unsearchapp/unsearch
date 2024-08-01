@@ -15,7 +15,7 @@ export const updateBookmark = async (
 	url: string | undefined
 ): Promise<number> => {
 	const response = await fetch("/api/bookmarks", {
-		method: "POST",
+		method: "PATCH",
 		body: JSON.stringify({ id, sessionId, title, url }),
 		credentials: "include",
 		headers: {
