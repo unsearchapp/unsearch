@@ -96,11 +96,14 @@ export const moveBookmark = async (
 	id: string,
 	userId: string,
 	sessionId: string,
-	index: string,
+	index: number,
 	parentId: string
-) => {
+): Promise<number> => {
 	try {
-		await knex("Bookmarks").where({ id, userId, sessionId }).update({ index, parentId });
+		const updatedRows = await knex("Bookmarks")
+			.where({ id, userId, sessionId })
+			.update({ index, parentId });
+		return updatedRows;
 	} catch (error) {
 		throw error;
 	}

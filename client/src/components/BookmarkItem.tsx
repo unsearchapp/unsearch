@@ -21,6 +21,7 @@ interface BookmarkItemProps {
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	showDropdown: boolean;
 	onEdit: (bookmark: Bookmark) => void;
+	onMove: (bookmark: Bookmark) => void;
 }
 
 export const BookmarkItem: React.FC<BookmarkItemProps> = ({
@@ -29,7 +30,8 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 	setCurrentFolder,
 	onDelete,
 	showDropdown,
-	onEdit
+	onEdit,
+	onMove
 }) => {
 	const handleDoubleClick = (e: React.MouseEvent<HTMLTableRowElement, MouseEvent>) => {
 		if (bookmark.url) {
@@ -89,6 +91,7 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={(e) => onEdit(bookmark)}>Edit</DropdownMenuItem>
+							<DropdownMenuItem onClick={(e) => onMove(bookmark!)}>Move</DropdownMenuItem>
 							{showDropdown && (
 								<DropdownMenuItem onClick={(e) => onDelete(e, bookmark)}>Delete</DropdownMenuItem>
 							)}

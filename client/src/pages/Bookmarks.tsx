@@ -13,10 +13,11 @@ import {
 	Input,
 	Label
 } from "ui";
-import { getBookmarks, deleteBookmark, updateBookmark } from "@/api/bookmarks";
+import { getBookmarks, deleteBookmark, updateBookmark, moveBookmark } from "@/api/bookmarks";
 import { PageLayout } from "@/components/Layout";
 import { Bookmark, Session } from "@/types/api";
 import { BookmarkList } from "@/components/BookmarkList";
+import { BookmarkNavigationList } from "@/components/BookmarkNavigationList";
 import { getSessions } from "@/api/sessions";
 import clsx from "clsx";
 
@@ -27,6 +28,7 @@ export function Bookmarks() {
 	const [path, setPath] = useState<Bookmark[]>([]);
 	const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark | null>(null);
 	const [bookmarkToEdit, setBookmarkToEdit] = useState<Bookmark | null>(null);
+	const [bookmarkToMove, setBookmarkToMove] = useState<Bookmark | null>(null);
 	const [title, setTitle] = useState<string | undefined>();
 	const [url, setUrl] = useState<string | undefined>();
 	const [error, setError] = useState<string | undefined>();
@@ -143,6 +145,85 @@ export function Bookmarks() {
 		}
 	}
 
+	function closeMoveBookmark() {
+		setBookmarkToMove(null);
+		setTargetFolder(null);
+		setPathNavigation([]);
+		setCurrentFolderNavigation(null);
+	}
+
+	// Folder navigation
+	const [currentFolderNavigation, setCurrentFolderNavigation] = useState<Bookmark | null>(null);
+	const [pathNavigation, setPathNavigation] = useState<Bookmark[]>([]);
+	const [targetFolder, setTargetFolder] = useState<Bookmark | null>(null);
+
+	function selectTargetFolder(bookmark: Bookmark) {
+		if (bookmark.id !== "root________" && bookmark.id !== "0") { // Root folders can't be updated
+			setTargetFolder(bookmark);
+		}
+	}
+
+	function updateCurrentFolderNavigation(bookmark: Bookmark) {
+		setCurrentFolderNavigation(bookmark);
+		setPathNavigation((prevBookmarks) => [...prevBookmarks, bookmark]);
+	}
+
+	function updatePathNavigation(bookmark: Bookmark | null) {
+		if (bookmark) {
+			setCurrentFolderNavigation(bookmark);
+			const pathIndex = path.findIndex((item) => item._id === bookmark._id);
+
+			if (pathIndex !== -1) {
+				setPathNavigation(path.slice(0, pathIndex + 1));
+			}
+		} else {
+			// Return to all bookmarks view
+			setCurrentFolderNavigation(null);
+			setPathNavigation([]);
+		}
+	}
+
+	function saveMove() {
+		if (bookmarkToMove && targetFolder) {
+			// Put bookmark at the end of the folder
+			const siblings = bookmarks.filter((bookmark) => bookmark.parentId === targetFolder.id);
+
+			let largestIndex;
+			if (siblings.length > 0) {
+				largestIndex = Math.max(...siblings.map((s) => (s.index ? s.index : -1)));
+			} else {
+				largestIndex = -1;
+			}
+
+			const index = largestIndex + 1;
+
+			moveBookmark(bookmarkToMove.id, bookmarkToMove.sessionId, index, targetFolder.id).then(
+				(updated: number) => {
+					if (updated > 0) {
+						toast({
+							title: "Updated",
+							description: "Bookmark successfully moved"
+						});
+						setBookmarkToMove(null);
+						setCurrentFolderNavigation(null);
+						setPathNavigation([]);
+						setTargetFolder(null);
+						fetchData();
+					} else {
+						toast({
+							title: "Something went wrong",
+							description: "Could not move the bookmark. Please try again later."
+						});
+						setBookmarkToMove(null);
+						setCurrentFolderNavigation(null);
+						setPathNavigation([]);
+						setTargetFolder(null);
+					}
+				}
+			);
+		}
+	}
+
 	return (
 		<PageLayout>
 			<div className="flex items-center">
@@ -158,6 +239,7 @@ export function Bookmarks() {
 				updatePath={updatePath}
 				onDelete={deleteAction}
 				setBookmarkToEdit={editBookmark}
+				setBookmarkToMove={setBookmarkToMove}
 			/>
 
 			<AlertDialog open={openDialog}>
@@ -204,6 +286,34 @@ export function Bookmarks() {
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={closeEditBookmark}>Cancel</AlertDialogCancel>
 						<AlertDialogAction onClick={saveChanges}>Save</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			<AlertDialog open={!!bookmarkToMove}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Move bookmark</AlertDialogTitle>
+						<AlertDialogDescription>
+							<BookmarkNavigationList
+								bookmarks={bookmarks}
+								sessions={sessions}
+								currentFolder={currentFolderNavigation}
+								setCurrentFolder={updateCurrentFolderNavigation}
+								path={pathNavigation}
+								updatePath={updatePathNavigation}
+								targetFolder={targetFolder}
+								setTargetFolder={selectTargetFolder}
+							/>
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={closeMoveBookmark}>Cancel</AlertDialogCancel>
+						{targetFolder ? (
+							<AlertDialogAction onClick={saveMove}>Move bookmark</AlertDialogAction>
+						) : (
+							<AlertDialogCancel>Move bookmark</AlertDialogCancel>
+						)}
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

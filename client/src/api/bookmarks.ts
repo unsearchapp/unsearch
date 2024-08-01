@@ -26,6 +26,24 @@ export const updateBookmark = async (
 	return data.data;
 };
 
+export const moveBookmark = async (
+	id: string,
+	sessionId: string,
+	index: number,
+	parentId: string
+): Promise<number> => {
+	const response = await fetch("/api/bookmarks/move", {
+		method: "POST",
+		body: JSON.stringify({ id, sessionId, index, parentId }),
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json"
+		}
+	});
+	const data: ApiResponse<number> = await response.json();
+	return data.data;
+};
+
 export const deleteBookmark = async (id: string, sessionId: string): Promise<number> => {
 	const response = await fetch("/api/bookmarks", {
 		method: "DELETE",

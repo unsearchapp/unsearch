@@ -224,12 +224,19 @@ function connect(sessionId, token) {
 					browser.bookmarks.remove(id); // remove bookmark / empty folder
 					break;
 				}
-				
+
 				case "BOOKMARKS_UPDATE": {
 					const id = payload.id;
 					const changes = payload.changes;
 
 					browser.bookmarks.update(id, changes);
+					break;
+				}
+
+				case "BOOKMARKS_MOVE": {
+					const id = payload.id;
+					const destination = payload.destination;
+					browser.bookmarks.move(id, destination);
 					break;
 				}
 

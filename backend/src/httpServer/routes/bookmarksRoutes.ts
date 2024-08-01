@@ -1,6 +1,11 @@
 import { Router, Request, Response } from "express";
 import { requireAuth } from "../middlewares/requireAuth";
-import { getBookmarksByUser, deleteBookmarkById, updateBookmark } from "../../db/bookmarksModel";
+import {
+	getBookmarksByUser,
+	deleteBookmarkById,
+	updateBookmark,
+	moveBookmark
+} from "../../db/bookmarksModel";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 
@@ -27,6 +32,27 @@ router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 			// send message to extension
 			const payload = { id, changes: { title, url } };
 			const message = JSON.stringify({ type: "BOOKMARKS_UPDATE", payload });
+			sendMessageToUser(userId, sessionId, message);
+		}
+
+		res.json({ data: updatedRows });
+	} catch (error) {
+		logger.error(error, "Error in /bookmarks POST route");
+		res.status(500).json({ error });
+	}
+});
+
+router.post("/bookmarks/move", requireAuth, async (req: Request, res: Response) => {
+	try {
+		const userId = req.user!._id;
+		const { sessionId, id, index, parentId } = req.body;
+
+		const updatedRows = await moveBookmark(id, userId, sessionId, index, parentId);
+
+		if (updatedRows > 0) {
+			// send message to extension
+			const payload = { id, destination: { index, parentId } };
+			const message = JSON.stringify({ type: "BOOKMARKS_MOVE", payload });
 			sendMessageToUser(userId, sessionId, message);
 		}
 
