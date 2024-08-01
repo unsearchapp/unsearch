@@ -57,8 +57,8 @@ export interface BookmarksUpdatePayload {
 export interface BookmarksMovePayload {
 	id: string;
 	moveInfo: {
-		index: string;
-		oldIndex: string;
+		index: number;
+		oldIndex: number;
 		oldParentId: string;
 		parentId: string;
 	};

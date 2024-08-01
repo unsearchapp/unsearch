@@ -112,8 +112,8 @@ export const validateBookmarksMovePayload = (payload: any): payload is Bookmarks
 		typeof payload.id === "string" &&
 		typeof payload.moveInfo === "object" &&
 		payload.moveInfo !== null &&
-		typeof payload.moveInfo.index === "string" &&
-		typeof payload.moveInfo.oldIndex === "string" &&
+		typeof payload.moveInfo.index === "number" &&
+		typeof payload.moveInfo.oldIndex === "number" &&
 		typeof payload.moveInfo.oldParentId === "string" &&
 		typeof payload.moveInfo.parentId === "string"
 	);
