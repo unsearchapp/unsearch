@@ -21,7 +21,7 @@ interface BookmarkItemProps {
 	onDelete: (e: React.MouseEvent<HTMLDivElement, MouseEvent>, bookmark: Bookmark) => void;
 	showDropdown: boolean;
 	onEdit: (bookmark: Bookmark) => void;
-	onMove: (bookmark: Bookmark) => void;
+	onMove: (bookmark: Bookmark, operationType: "move" | "copy") => void;
 }
 
 export const BookmarkItem: React.FC<BookmarkItemProps> = ({
@@ -91,7 +91,8 @@ export const BookmarkItem: React.FC<BookmarkItemProps> = ({
 							<DropdownMenuLabel>Actions</DropdownMenuLabel>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem onClick={(e) => onEdit(bookmark)}>Edit</DropdownMenuItem>
-							<DropdownMenuItem onClick={(e) => onMove(bookmark!)}>Move</DropdownMenuItem>
+							<DropdownMenuItem onClick={(e) => onMove(bookmark!, "move")}>Move</DropdownMenuItem>
+							<DropdownMenuItem onClick={(e) => onMove(bookmark!, "copy")}>Copy</DropdownMenuItem>
 							{showDropdown && (
 								<DropdownMenuItem onClick={(e) => onDelete(e, bookmark)}>Delete</DropdownMenuItem>
 							)}

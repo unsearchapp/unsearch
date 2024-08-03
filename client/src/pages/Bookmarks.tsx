@@ -36,6 +36,7 @@ export function Bookmarks() {
 	const [bookmarkToDelete, setBookmarkToDelete] = useState<Bookmark | null>(null);
 	const [bookmarkToEdit, setBookmarkToEdit] = useState<Bookmark | null>(null);
 	const [bookmarkToMove, setBookmarkToMove] = useState<Bookmark | null>(null);
+	const [operation, setOperation] = useState<"copy" | "move" | "">("");
 	const [title, setTitle] = useState<string | undefined>();
 	const [url, setUrl] = useState<string | undefined>();
 	const [error, setError] = useState<string | undefined>();
@@ -205,30 +206,58 @@ export function Bookmarks() {
 
 			const index = largestIndex + 1;
 
-			moveBookmark(bookmarkToMove.id, bookmarkToMove.sessionId, index, targetFolder.id).then(
-				(updated: number) => {
-					if (updated > 0) {
+			if (operation === "copy") {
+				console.log(targetFolder.sessionId);
+				createBookmark(
+					targetFolder.id,
+					targetFolder.sessionId,
+					bookmarkToMove.title,
+					index,
+					bookmarkToMove.url
+				).then((success) => {
+					setBookmarkToMove(null);
+					setCurrentFolderNavigation(null);
+					setPathNavigation([]);
+					setTargetFolder(null);
+					if (success) {
 						toast({
-							title: "Updated",
-							description: "Bookmark successfully moved"
+							title: "Copied",
+							description: "Bookmark successfully copied"
 						});
-						setBookmarkToMove(null);
-						setCurrentFolderNavigation(null);
-						setPathNavigation([]);
-						setTargetFolder(null);
 						fetchData();
 					} else {
 						toast({
 							title: "Something went wrong",
-							description: "Could not move the bookmark. Please try again later."
+							description: "Could not copy the bookmark. Please try again later."
 						});
-						setBookmarkToMove(null);
-						setCurrentFolderNavigation(null);
-						setPathNavigation([]);
-						setTargetFolder(null);
 					}
-				}
-			);
+				});
+			} else {
+				moveBookmark(bookmarkToMove.id, bookmarkToMove.sessionId, index, targetFolder.id).then(
+					(updated: number) => {
+						if (updated > 0) {
+							toast({
+								title: "Updated",
+								description: "Bookmark successfully moved"
+							});
+							setBookmarkToMove(null);
+							setCurrentFolderNavigation(null);
+							setPathNavigation([]);
+							setTargetFolder(null);
+							fetchData();
+						} else {
+							toast({
+								title: "Something went wrong",
+								description: "Could not move the bookmark. Please try again later."
+							});
+							setBookmarkToMove(null);
+							setCurrentFolderNavigation(null);
+							setPathNavigation([]);
+							setTargetFolder(null);
+						}
+					}
+				);
+			}
 		}
 	}
 
@@ -274,6 +303,11 @@ export function Bookmarks() {
 		setFolderName("");
 	}
 
+	function selectBookmarkOperation(bookmark: Bookmark, operationType: "copy" | "move") {
+		setBookmarkToMove(bookmark);
+		setOperation(operationType);
+	}
+
 	return (
 		<PageLayout>
 			<div className="flex items-center">
@@ -289,7 +323,7 @@ export function Bookmarks() {
 				updatePath={updatePath}
 				onDelete={deleteAction}
 				setBookmarkToEdit={editBookmark}
-				setBookmarkToMove={setBookmarkToMove}
+				setBookmarkToMove={selectBookmarkOperation}
 				createFolder={createFolder}
 			/>
 
@@ -344,7 +378,7 @@ export function Bookmarks() {
 			<AlertDialog open={!!bookmarkToMove}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Move bookmark</AlertDialogTitle>
+						<AlertDialogTitle>{operation === "move" ? "Move" : "Copy"} bookmark</AlertDialogTitle>
 						<AlertDialogDescription>
 							<BookmarkNavigationList
 								bookmarks={bookmarks}
@@ -361,9 +395,13 @@ export function Bookmarks() {
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={closeMoveBookmark}>Cancel</AlertDialogCancel>
 						{targetFolder ? (
-							<AlertDialogAction onClick={saveMove}>Move bookmark</AlertDialogAction>
+							<AlertDialogAction onClick={saveMove}>
+								{operation === "move" ? "Move" : "Copy"} bookmark
+							</AlertDialogAction>
 						) : (
-							<AlertDialogCancel>Move bookmark</AlertDialogCancel>
+							<AlertDialogCancel>
+								{operation === "move" ? "Move" : "Copy"} bookmark
+							</AlertDialogCancel>
 						)}
 					</AlertDialogFooter>
 				</AlertDialogContent>

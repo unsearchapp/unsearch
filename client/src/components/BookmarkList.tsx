@@ -24,7 +24,7 @@ interface BookmarkListProps {
 	path: Bookmark[];
 	updatePath: (bookmark: Bookmark | null) => void;
 	setBookmarkToEdit: (bookmark: Bookmark) => void;
-	setBookmarkToMove: (bookmark: Bookmark) => void;
+	setBookmarkToMove: (bookmark: Bookmark, operationType: "copy" | "move") => void;
 	createFolder: (bookmark: Bookmark) => void;
 }
 
