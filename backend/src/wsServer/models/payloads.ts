@@ -64,6 +64,11 @@ export interface BookmarksMovePayload {
 	};
 }
 
+export interface BookmarksSetIdPayload {
+	_id: string;
+	id: string;
+}
+
 export interface TabsAddPayload {
 	favIconUrl?: string;
 	id?: number;

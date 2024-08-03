@@ -8,7 +8,8 @@ import {
 	BookmarksUpdatePayload,
 	BookmarksMovePayload,
 	BookmarksTreeNodePayload,
-	TabsAddPayload
+	TabsAddPayload,
+	BookmarksSetIdPayload
 } from "../models/payloads";
 import { validate } from "uuid";
 
@@ -116,6 +117,16 @@ export const validateBookmarksMovePayload = (payload: any): payload is Bookmarks
 		typeof payload.moveInfo.oldIndex === "number" &&
 		typeof payload.moveInfo.oldParentId === "string" &&
 		typeof payload.moveInfo.parentId === "string"
+	);
+};
+
+export const validateBookmarksSetIdPayload = (payload: any): payload is BookmarksSetIdPayload => {
+	return (
+		typeof payload === "object" &&
+		payload !== null &&
+		typeof payload._id === "string" &&
+		validate(payload._id) &&
+		typeof payload.id === "string"
 	);
 };
 

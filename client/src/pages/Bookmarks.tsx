@@ -13,7 +13,14 @@ import {
 	Input,
 	Label
 } from "ui";
-import { getBookmarks, deleteBookmark, updateBookmark, moveBookmark } from "@/api/bookmarks";
+import {
+	getBookmarks,
+	deleteBookmark,
+	updateBookmark,
+	moveBookmark,
+	createBookmark
+} from "@/api/bookmarks";
+import { CreateFolderModal } from "@/components/CreateFolderModal";
 import { PageLayout } from "@/components/Layout";
 import { Bookmark, Session } from "@/types/api";
 import { BookmarkList } from "@/components/BookmarkList";
@@ -158,7 +165,8 @@ export function Bookmarks() {
 	const [targetFolder, setTargetFolder] = useState<Bookmark | null>(null);
 
 	function selectTargetFolder(bookmark: Bookmark) {
-		if (bookmark.id !== "root________" && bookmark.id !== "0") { // Root folders can't be updated
+		if (bookmark.id !== "root________" && bookmark.id !== "0") {
+			// Root folders can't be updated
 			setTargetFolder(bookmark);
 		}
 	}
@@ -224,6 +232,48 @@ export function Bookmarks() {
 		}
 	}
 
+	const [folderName, setFolderName] = useState<string>("");
+	const [openCreateFolderModal, setOpenCreateFolderModal] = useState<boolean>(false);
+	const [folderParent, setFolderParent] = useState<Bookmark | null>(null);
+	const [newFolderError, setNewFolderError] = useState<string>("");
+
+	function createFolder(bookmark: Bookmark) {
+		setFolderParent(bookmark);
+		setOpenCreateFolderModal(true);
+	}
+
+	function createNewFolder() {
+		// Create a folder as a child of the bookmark argument
+		setNewFolderError("");
+		if (!folderName) {
+			setNewFolderError("Invalid name");
+		} else {
+			createBookmark(folderParent!.id, folderParent!.sessionId, folderName).then((success) => {
+				if (success) {
+					toast({
+						title: "Created",
+						description: "Folder successfully created"
+					});
+					fetchData();
+				} else {
+					toast({
+						title: "Something went wrong",
+						description: "Could not move the bookmark. Please try again later."
+					});
+				}
+				setOpenCreateFolderModal(false);
+				setFolderParent(null);
+				setFolderName("");
+			});
+		}
+	}
+
+	function closeNewFolderModal() {
+		setOpenCreateFolderModal(false);
+		setNewFolderError("");
+		setFolderName("");
+	}
+
 	return (
 		<PageLayout>
 			<div className="flex items-center">
@@ -240,6 +290,7 @@ export function Bookmarks() {
 				onDelete={deleteAction}
 				setBookmarkToEdit={editBookmark}
 				setBookmarkToMove={setBookmarkToMove}
+				createFolder={createFolder}
 			/>
 
 			<AlertDialog open={openDialog}>
@@ -317,6 +368,15 @@ export function Bookmarks() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			<CreateFolderModal
+				open={openCreateFolderModal}
+				onClose={closeNewFolderModal}
+				name={folderName}
+				setName={setFolderName}
+				onCreate={createNewFolder}
+				error={newFolderError}
+			/>
 
 			<Toaster />
 		</PageLayout>

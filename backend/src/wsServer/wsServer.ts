@@ -9,6 +9,7 @@ import {
 	validateBookmarksDeletePayload,
 	validateBookmarksMovePayload,
 	validateBookmarksUpdatePayload,
+	validateBookmarksSetIdPayload,
 	validateTabsAddPayload
 } from "./utils/validatePayloads";
 import { validateToken } from "./utils/validateToken";
@@ -18,7 +19,8 @@ import {
 	bookmarksAddHandler,
 	bookmarksDeleteHandler,
 	bookmarksMoveHandler,
-	bookmarksUpdateHandler
+	bookmarksUpdateHandler,
+	bookmarksSetIdHandler
 } from "./handlers/bookmarksHandlers";
 import { historyDeleteHandler } from "./handlers/historyDeleteHandler";
 import { UserConnection } from "./models/wsServer";
@@ -234,6 +236,24 @@ wss.on("connection", (ws: any, req: any) => {
 							}
 						} else {
 							logger.info("Invalid bookmarks update payload");
+						}
+					}
+					break;
+
+				case MessageType.BOOKMARKS_SETID:
+					logger.debug(payload, "New BOOKMARKS_SETID message.");
+					if (!userId || !sessionId) {
+						ws.send(JSON.stringify({ type: "ERROR", message: "Unauthorized" }));
+					} else {
+						if (validateBookmarksSetIdPayload(payload)) {
+							try {
+								await bookmarksSetIdHandler(payload);
+							} catch (error) {
+								logger.error(error, "Error in bookmarks update handler");
+								ws.send(JSON.stringify({ type: "ERROR", error }));
+							}
+						} else {
+							logger.info("Invalid bookmarks setid payload");
 						}
 					}
 					break;

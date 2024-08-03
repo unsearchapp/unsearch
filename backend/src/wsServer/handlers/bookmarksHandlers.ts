@@ -3,7 +3,8 @@ import {
 	createBookmark,
 	deleteBookmarkById,
 	moveBookmark,
-	updateBookmark
+	updateBookmark,
+	setBookmarkId
 } from "../../db/bookmarksModel";
 import {
 	BookmarkNodePayload,
@@ -11,7 +12,8 @@ import {
 	BookmarksTreeNodePayload,
 	BookmarksDeletePayload,
 	BookmarksMovePayload,
-	BookmarksUpdatePayload
+	BookmarksUpdatePayload,
+	BookmarksSetIdPayload
 } from "../models/payloads";
 
 function transformPayloadtoBookmark(
@@ -90,4 +92,8 @@ export const bookmarksUpdateHandler = async (
 		payload.updateInfo.url,
 		payload.updateInfo.title
 	);
+};
+
+export const bookmarksSetIdHandler = async (payload: BookmarksSetIdPayload) => {
+	await setBookmarkId(payload._id, payload.id);
 };

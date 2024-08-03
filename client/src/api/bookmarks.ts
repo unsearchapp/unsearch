@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { Bookmark, ApiResponse } from "../types/api";
 
 export const getBookmarks = async (): Promise<Bookmark[]> => {
@@ -5,6 +6,28 @@ export const getBookmarks = async (): Promise<Bookmark[]> => {
 		credentials: "include"
 	});
 	const data: ApiResponse<Bookmark[]> = await response.json();
+	return data.data;
+};
+
+export const createBookmark = async (
+	parentId: string,
+	sessionId: string,
+	title: string,
+	index?: number,
+	url?: string
+): Promise<boolean> => {
+	// Create a temporal id
+	const tempId = uuidv4();
+
+	const response = await fetch("/api/bookmarks", {
+		method: "POST",
+		body: JSON.stringify({ sessionId, index, parentId, title, url, id: tempId }),
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json"
+		}
+	});
+	const data: ApiResponse<boolean> = await response.json();
 	return data.data;
 };
 

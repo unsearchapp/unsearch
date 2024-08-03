@@ -29,9 +29,14 @@ export interface BookmarkTreeNode {
 	url?: string;
 }
 
-export const createBookmark = async (bookmark: BookmarkInsert) => {
+interface insertedBookmark {
+	_id: string;
+}
+
+export const createBookmark = async (bookmark: BookmarkInsert): Promise<string> => {
 	try {
-		await knex("Bookmarks").insert(bookmark).onConflict(["userId", "sessionId", "id"]).ignore();
+		const [{ _id }]: insertedBookmark[] = await knex("Bookmarks").insert(bookmark).returning("_id");
+		return _id;
 	} catch (error) {
 		throw error;
 	}
@@ -104,6 +109,14 @@ export const moveBookmark = async (
 			.where({ id, userId, sessionId })
 			.update({ index, parentId });
 		return updatedRows;
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const setBookmarkId = async (_id: string, id: string) => {
+	try {
+		await knex("Bookmarks").where({ _id }).update({ id });
 	} catch (error) {
 		throw error;
 	}

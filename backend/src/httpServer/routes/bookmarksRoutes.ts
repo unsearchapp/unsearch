@@ -4,7 +4,8 @@ import {
 	getBookmarksByUser,
 	deleteBookmarkById,
 	updateBookmark,
-	moveBookmark
+	moveBookmark,
+	createBookmark
 } from "../../db/bookmarksModel";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
@@ -18,6 +19,35 @@ router.get("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 	} catch (error) {
 		logger.error(error, "Error in /bookmarks GET route");
 		res.status(500).json({ error });
+	}
+});
+
+interface createBookmarkBody {
+	sessionId: string;
+	parentId: string;
+	index?: number;
+	title: string;
+	url?: string;
+	id: string;
+}
+
+router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
+	try {
+		const userId = req.user!._id;
+		const { sessionId, parentId, index, title, url, id }: createBookmarkBody = req.body;
+
+		const bookmarkInsert = { userId, sessionId, parentId, index, title, url, id };
+		const _id = await createBookmark(bookmarkInsert);
+
+		// send message to extension
+		const payload = { _id, createDetails: { index, parentId, title, url } };
+		const message = JSON.stringify({ type: "BOOKMARKS_CREATE", payload });
+		sendMessageToUser(userId, sessionId, message);
+
+		res.json({ data: true });
+	} catch (error) {
+		logger.error(error, "Error in /bookmarks POST route");
+		res.status(500).json({ data: false });
 	}
 });
 

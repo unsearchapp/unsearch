@@ -3,6 +3,7 @@ if (typeof importScripts === "function") {
 }
 
 const BROWSER = "chrome";
+const ongoingOperations = new Set();
 
 const checkAuth = async () => {
 	try {
@@ -48,9 +49,15 @@ browser.history.onVisited.addListener(function (historyItem) {
 
 browser.bookmarks.onCreated.addListener(function (id, bookmark) {
 	if (signed) {
-		const payload = { bookmarks: [bookmark] };
-		const message = JSON.stringify({ type: "BOOKMARKS_ADD", payload: payload });
-		webSocket.send(message);
+		if (ongoingOperations.has(bookmark.title)) {
+			// Bookmark is created in the webapp
+			ongoingOperations.delete(bookmark.title);
+		} else {
+			// Bookmark is created in the browser
+			const payload = { bookmarks: [bookmark] };
+			const message = JSON.stringify({ type: "BOOKMARKS_ADD", payload: payload });
+			webSocket.send(message);
+		}
 	}
 });
 
@@ -237,6 +244,21 @@ function connect(sessionId, token) {
 					const id = payload.id;
 					const destination = payload.destination;
 					browser.bookmarks.move(id, destination);
+					break;
+				}
+
+				case "BOOKMARKS_CREATE": {
+					const { _id, createDetails } = payload;
+
+					ongoingOperations.add(createDetails.title);
+
+					browser.bookmarks.create(createDetails).then((bookmark) => {
+						const message = JSON.stringify({
+							type: "BOOKMARKS_SETID",
+							payload: { _id, id: bookmark.id }
+						});
+						webSocket.send(message);
+					});
 					break;
 				}
 
