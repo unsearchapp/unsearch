@@ -405,7 +405,6 @@ function onTabDelete(tabId, removeInfo) {
 
 initialCaptureTabsState();
 
-browser.tabs.onRemoved.addListener(onTabDelete);
 browser.tabs.onAttached.addListener(snapshotTabState);
 browser.tabs.onDetached.addListener(snapshotTabState);
 browser.tabs.onUpdated.addListener(onTabUpdate);
