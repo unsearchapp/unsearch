@@ -65,3 +65,23 @@ export interface TabData {
 export interface ApiResponse<T> {
 	data: T;
 }
+
+export interface Log {
+	_id: string;
+	sessionId: string;
+	message: string;
+	status: string;
+	createdAt: Date;
+	sentAt?: Date;
+	session: {
+		browser: string;
+		arch: string;
+		os: string;
+	};
+}
+
+export interface LogData {
+	data: Log[];
+	hasMoreItems: boolean;
+	len: number;
+}

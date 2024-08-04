@@ -6,6 +6,7 @@ import { Register } from "./pages/Regsiter";
 import { Sessions } from "./pages/Sessions";
 import { Bookmarks } from "./pages/Bookmarks";
 import { Tabs } from "./pages/Tabs";
+import { Logs } from "./pages/Logs";
 import { useAuthContext } from "./hooks/useAuthContext";
 
 const App: React.FC = () => {
@@ -22,6 +23,7 @@ const App: React.FC = () => {
 					path="/sessions"
 				/>
 				<Route element={isAuthenticated ? <Tabs /> : <Navigate to="/login" />} path="/tabs" />
+				<Route element={isAuthenticated ? <Logs /> : <Navigate to="/login" />} path="/logs" />
 				<Route
 					element={isAuthenticated ? <Bookmarks /> : <Navigate to="/login" />}
 					path="/bookmarks"

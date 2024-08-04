@@ -10,6 +10,7 @@ import bookmarksRouter from "./routes/bookmarksRoutes";
 import sessionsRouter from "./routes/sessionRoutes";
 import authRouter from "./routes/authRoutes";
 import tabsRouter from "./routes/tabsRoutes";
+import messageRouter from "./routes/messagesRoutes";
 import pgSession from "connect-pg-simple";
 import { pool } from "../db/db";
 import { logger } from "../utils/logger";
@@ -53,6 +54,7 @@ app.use("/api", bookmarksRouter);
 app.use("/api", sessionsRouter);
 app.use("/api", authRouter);
 app.use("/api", tabsRouter);
+app.use("/api", messageRouter);
 
 function setUpHttpServer() {
 	app.listen(port, () => {
