@@ -21,7 +21,8 @@ import {
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
+	TableRow,
+	buttonVariants
 } from "ui";
 import { getSessions } from "@/api/sessions";
 import { PageLayout } from "@/components/Layout";
@@ -69,8 +70,16 @@ export function Sessions() {
 
 	return (
 		<PageLayout>
-			<div className="flex items-center">
+			<div className="flex items-center justify-between">
 				<h1 className="text-lg font-semibold md:text-2xl">Sessions</h1>
+				<a
+					href='/logs'
+					className={`${buttonVariants({
+						variant: "secondary"
+					})} hover:text-inherit`}
+				>
+					Message logs
+				</a>
 			</div>
 
 			<Table className="mt-8">
