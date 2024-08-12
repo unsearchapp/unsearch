@@ -44,7 +44,7 @@ if (!port) {
 
 const wss = new ws.WebSocketServer({ port: parseInt(port) });
 
-const usersConnections: Map<string, UserConnection> = new Map();
+export const usersConnections: Map<string, UserConnection> = new Map();
 
 export const sendMessageToUser = async (userId: string, sessionId: string, message: string) => {
 	const userConnection = usersConnections.get(sessionId);
