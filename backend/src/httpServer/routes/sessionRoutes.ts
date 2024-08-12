@@ -1,14 +1,19 @@
 import { Router } from "express";
 import { deleteSessionById, getSessionsByUser } from "../../db/sessionsModel";
 import { requireAuth } from "../middlewares/requireAuth";
-import { sendMessageToUser } from "../../wsServer/wsServer";
+import { usersConnections } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 
 const router = Router();
 
 router.get("/sessions", requireAuth, async (req, res) => {
 	try {
-		const sessions = await getSessionsByUser(req.user!._id);
+		const sessionsItems = await getSessionsByUser(req.user!._id);
+		const sessions = sessionsItems.map((session) => {
+			const connection = usersConnections.get(session._id);
+			return { ...session, active: !!connection };
+		});
+
 		res.json({ data: sessions });
 	} catch (error) {
 		logger.error(error, "Error in /sessions GET route");

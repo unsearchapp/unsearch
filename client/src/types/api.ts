@@ -5,6 +5,7 @@ export interface Session {
 	os: string;
 	createdAt: string;
 	lastConnectedAt: string;
+	active: boolean;
 }
 
 export interface Bookmark {

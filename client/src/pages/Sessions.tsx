@@ -24,6 +24,8 @@ import {
 	TableRow,
 	buttonVariants
 } from "ui";
+import { DotFilledIcon } from "@radix-ui/react-icons";
+import clsx from "clsx";
 import { getSessions } from "@/api/sessions";
 import { PageLayout } from "@/components/Layout";
 import { Session } from "@/types/api";
@@ -86,6 +88,7 @@ export function Sessions() {
 				<TableHeader>
 					<TableRow>
 						<TableHead>Session</TableHead>
+						<TableHead>Status</TableHead>
 						<TableHead>Last connected</TableHead>
 						<TableHead>Created</TableHead>
 						<TableHead className="text-right">Actions</TableHead>
@@ -103,6 +106,17 @@ export function Sessions() {
 											<span className="text-gray-400">
 												{session.os}, {session.arch}
 											</span>
+										</div>
+									</TableCell>
+									<TableCell className="text-gray-400">
+										<div className="flex">
+											<DotFilledIcon
+												className={clsx(
+													"h-5 w-5",
+													session.active ? "text-green-500" : "text-red-500"
+												)}
+											/>
+											<span className="capitalize">{session.active ? "Active" : "Inactive"}</span>
 										</div>
 									</TableCell>
 									<TableCell className="text-gray-400">
