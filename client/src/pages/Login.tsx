@@ -15,10 +15,10 @@ export function Login() {
 		event.preventDefault();
 
 		try {
-			await login(email, password);
+			const user = await login(email, password);
 
 			if (fromExtension === "true") {
-				window.postMessage({ type: "signupSuccess", text: "success" }, "*");
+				window.postMessage({ type: "signupSuccess", user }, "*");
 			}
 		} catch (error) {}
 	}

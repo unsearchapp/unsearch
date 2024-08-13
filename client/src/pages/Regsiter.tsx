@@ -15,10 +15,10 @@ export const Register = () => {
 		event.preventDefault();
 
 		try {
-			await register(email, password);
+			const user = await register(email, password);
 
 			if (fromExtension === "true") {
-				window.postMessage({ type: "signupSuccess", text: "success" }, "*");
+				window.postMessage({ type: "signupSuccess", user }, "*");
 			}
 		} catch (error) {
 			console.log(error);

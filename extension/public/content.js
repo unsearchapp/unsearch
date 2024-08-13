@@ -3,6 +3,6 @@ window.addEventListener("message", function (event) {
 
 	// Forward the message to the background script
 	if (event.data.type && event.data.type === "signupSuccess") {
-		browser.runtime.sendMessage({ type: "signupSuccess" });
+		browser.runtime.sendMessage(event.data);
 	}
 });

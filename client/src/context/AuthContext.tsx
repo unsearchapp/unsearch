@@ -9,8 +9,8 @@ export interface AuthContextInterface {
 	isAuthenticated: boolean;
 	user: User | null;
 	checkAuth: () => void;
-	login: (email: string, password: string) => Promise<void>;
-	register: (email: string, password: string) => Promise<void>;
+	login: (email: string, password: string) => Promise<User>;
+	register: (email: string, password: string) => Promise<User>;
 	logout: () => Promise<void>;
 }
 
@@ -43,7 +43,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 		}
 	};
 
-	const login = async (email: string, password: string) => {
+	const login = async (email: string, password: string): Promise<User> => {
 		try {
 			const response = await fetch("/api/login", {
 				method: "POST",
@@ -59,6 +59,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 
 				setIsAuthenticated(true);
 				setUser(data.user);
+				return data.user;
 			} else {
 				throw new Error("Login failed");
 			}
@@ -67,7 +68,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 		}
 	};
 
-	const register = async (email: string, password: string) => {
+	const register = async (email: string, password: string): Promise<User> => {
 		try {
 			const response = await fetch("/api/register", {
 				method: "POST",
@@ -82,6 +83,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 				const data = await response.json();
 				setIsAuthenticated(true);
 				setUser(data.user);
+				return data.user;
 			} else {
 				throw new Error("Registration failed");
 			}
