@@ -5,6 +5,8 @@ import browser from "webextension-polyfill";
 
 function App() {
 	const [view, setView] = useState<"welcome" | "home">("welcome");
+	const [port, setPort] = useState<browser.Runtime.Port | null>(null);
+	const [isConnected, setIsConnected] = useState(false);
 	const [email, setEmail] = useState<string>("");
 
 	useEffect(() => {
@@ -25,12 +27,28 @@ function App() {
 		};
 
 		checkAuthStatus();
+
+		const newPort = browser.runtime.connect({ name: "popup" });
+		setPort(newPort);
+
+		newPort.onMessage.addListener((msg) => {
+			if (msg.type === "SESSION_STATUS") {
+				setIsConnected(msg.isConnected);
+			}
+		});
+
+		// Optional: Request the current status when the popup loads
+		newPort.postMessage({ type: "GET_STATUS" });
+
+		return () => {
+			newPort.disconnect();
+		};
 	}, []);
 
 	return (
 		<>
 			{view === "welcome" && <Welcome />}
-			{view === "home" && <Home email={email} />}
+			{view === "home" && <Home email={email} isConnected={isConnected} port={port} />}
 		</>
 	);
 }

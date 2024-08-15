@@ -25,8 +25,8 @@ const checkAuth = async () => {
 
 checkAuth();
 
-// Check auth every 30sec
-setInterval(checkAuth, 30000);
+// Check auth every 5sec
+setInterval(checkAuth, 5000);
 
 // Listen for messages from content script
 browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
@@ -38,7 +38,7 @@ browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 });
 
 browser.history.onVisited.addListener(function (historyItem) {
-	if (signed) {
+	if (isConnected) {
 		const message = JSON.stringify({
 			type: "HISTORY_ADD",
 			payload: [historyItem]
@@ -48,7 +48,7 @@ browser.history.onVisited.addListener(function (historyItem) {
 });
 
 browser.bookmarks.onCreated.addListener(function (id, bookmark) {
-	if (signed) {
+	if (isConnected) {
 		if (ongoingOperations.has(bookmark.title)) {
 			// Bookmark is created in the webapp
 			ongoingOperations.delete(bookmark.title);
@@ -62,7 +62,7 @@ browser.bookmarks.onCreated.addListener(function (id, bookmark) {
 });
 
 browser.bookmarks.onMoved.addListener(function (id, moveInfo) {
-	if (signed) {
+	if (isConnected) {
 		const payload = { id, moveInfo };
 		const message = JSON.stringify({
 			type: "BOOKMARKS_MOVE",
@@ -73,7 +73,7 @@ browser.bookmarks.onMoved.addListener(function (id, moveInfo) {
 });
 
 browser.bookmarks.onChanged.addListener(function (id, changeInfo) {
-	if (signed) {
+	if (isConnected) {
 		const payload = { id, updateInfo: changeInfo };
 		const message = JSON.stringify({
 			type: "BOOKMARKS_UPDATE",
@@ -84,7 +84,7 @@ browser.bookmarks.onChanged.addListener(function (id, changeInfo) {
 });
 
 browser.bookmarks.onRemoved.addListener(function (id, removedInfo) {
-	if (signed) {
+	if (isConnected) {
 		const payload = { id };
 		const message = JSON.stringify({ type: "BOOKMARKS_DELETE", payload });
 		webSocket.send(message);
@@ -92,7 +92,7 @@ browser.bookmarks.onRemoved.addListener(function (id, removedInfo) {
 });
 
 browser.history.onVisitRemoved.addListener(function (removed) {
-	if (signed) {
+	if (isConnected) {
 		if (removed.allHistory) {
 			const message = JSON.stringify({
 				type: "HISTORY_DELETE",
@@ -172,7 +172,7 @@ function keepAlive() {
 
 function fetchBookmarks() {
 	browser.bookmarks.getTree().then((results) => {
-		if (signed) {
+		if (isConnected) {
 			const payload = { bookmarks: results };
 			const message = JSON.stringify({
 				type: "BOOKMARKS_ADD",
@@ -184,142 +184,219 @@ function fetchBookmarks() {
 }
 
 let webSocket = null;
-let signed = false;
+let isConnected = false;
 function connect(sessionId, token) {
 	webSocket = new WebSocket(import.meta.env.VITE_WS_URL);
 
-	webSocket.onopen = (event) => {
-		const payload = { token: token };
-		const message = JSON.stringify({ type: "AUTH", payload });
-		webSocket.send(message);
+	return new Promise((resolve, reject) => {
+		let timeoutId;
 
-		keepAlive();
-	};
+		// Set a timeout to reject the promise if no response is received within a certain time
+		const timeoutDuration = 10000; // 10 seconds timeout (adjust as needed)
+		timeoutId = setTimeout(() => {
+			webSocket.close(); // Close the websocket if there's no response
+			reject(new Error("Connection timed out"));
+		}, timeoutDuration);
 
-	webSocket.onmessage = (event) => {
-		try {
-			const { type, payload } = JSON.parse(event.data);
+		webSocket.onopen = (event) => {
+			const payload = { token: token };
+			const message = JSON.stringify({ type: "AUTH", payload });
+			webSocket.send(message);
 
-			switch (type) {
-				case "AUTH_SUCCESS":
-					chrome.runtime.getPlatformInfo().then((data) => {
-						const message = JSON.stringify({
-							type: "ID",
-							payload: { id: sessionId, browser: BROWSER, arch: data.arch, os: data.os }
+			keepAlive();
+		};
+
+		webSocket.onmessage = (event) => {
+			try {
+				const { type, payload } = JSON.parse(event.data);
+
+				switch (type) {
+					case "AUTH_SUCCESS":
+						chrome.runtime.getPlatformInfo().then((data) => {
+							const message = JSON.stringify({
+								type: "ID",
+								payload: { id: sessionId, browser: BROWSER, arch: data.arch, os: data.os }
+							});
+							webSocket.send(message);
 						});
-						webSocket.send(message);
-					});
 
-					break;
+						break;
 
-				case "ID_SUCCESS":
-					signed = true;
-					break;
+					case "ID_SUCCESS":
+						isConnected = true;
+						browser.storage.local.set({ isConnected });
 
-				case "HISTORY_INIT":
-					fetchBookmarks();
-					fetchHistory("", 0, undefined, []);
-					break;
+						clearTimeout(timeoutId); // Clear the timeout if AUTH_SUCCESS is received
+						resolve();
+						break;
 
-				case "SESSION_REMOVE":
-					signed = false;
-					disconnect();
-					break;
+					case "HISTORY_INIT":
+						fetchBookmarks();
+						fetchHistory("", 0, undefined, []);
+						break;
 
-				case "BOOKMARKS_REMOVE": {
-					const id = payload.id;
-					browser.bookmarks.remove(id); // remove bookmark / empty folder
-					break;
-				}
+					case "LOGOUT":
+						isConnected = false;
+						chrome.storage.local.set({ isConnected });
 
-				case "BOOKMARKS_UPDATE": {
-					const id = payload.id;
-					const changes = payload.changes;
+						browser.runtime.sendMessage({ type: "SESSION_STATUS", isConnected });
+						disconnect();
+						break;
 
-					browser.bookmarks.update(id, changes);
-					break;
-				}
+					case "BOOKMARKS_REMOVE": {
+						const id = payload.id;
+						browser.bookmarks.remove(id); // remove bookmark / empty folder
+						break;
+					}
 
-				case "BOOKMARKS_MOVE": {
-					const id = payload.id;
-					const destination = payload.destination;
-					browser.bookmarks.move(id, destination);
-					break;
-				}
+					case "BOOKMARKS_UPDATE": {
+						const id = payload.id;
+						const changes = payload.changes;
 
-				case "BOOKMARKS_CREATE": {
-					const { _id, createDetails } = payload;
+						browser.bookmarks.update(id, changes);
+						break;
+					}
 
-					ongoingOperations.add(createDetails.title);
+					case "BOOKMARKS_MOVE": {
+						const id = payload.id;
+						const destination = payload.destination;
+						browser.bookmarks.move(id, destination);
+						break;
+					}
 
-					browser.bookmarks.create(createDetails).then((bookmark) => {
-						const message = JSON.stringify({
-							type: "BOOKMARKS_SETID",
-							payload: { _id, id: bookmark.id }
+					case "BOOKMARKS_CREATE": {
+						const { _id, createDetails } = payload;
+
+						ongoingOperations.add(createDetails.title);
+
+						browser.bookmarks.create(createDetails).then((bookmark) => {
+							const message = JSON.stringify({
+								type: "BOOKMARKS_SETID",
+								payload: { _id, id: bookmark.id }
+							});
+							webSocket.send(message);
 						});
-						webSocket.send(message);
-					});
-					break;
+						break;
+					}
+
+					case "HISTORY_REMOVE":
+						const url = payload.url;
+						browser.history.deleteUrl({ url }); // see also deleteRange
+						break;
+
+					default:
+						console.log("Unexpected event received: ", type, event);
 				}
-
-				case "HISTORY_REMOVE":
-					const url = payload.url;
-					browser.history.deleteUrl({ url }); // see also deleteRange
-					break;
-
-				default:
-					console.log("Unexpected event received: ", type, event);
+			} catch (error) {
+				console.log("Error parsing the message", event.data, error);
+				reject(error);
 			}
-		} catch (error) {
-			console.log("Error parsing the message", event.data, error);
-		}
-	};
+		};
 
-	webSocket.onclose = (event) => {
-		console.log("websocket connection closed");
-		webSocket = null;
-	};
+		webSocket.onclose = (event) => {
+			isConnected = false;
+			browser.storage.local.set({ isConnected });
+			webSocket = null;
+
+			clearTimeout(timeoutId);
+			reject(new Error("WebSocket closed unexpectedly"));
+		};
+
+		webSocket.onerror = () => {
+			isConnected = false;
+			browser.storage.local.set({ isConnected });
+			clearTimeout(timeoutId); // Clear the timeout on error
+			reject(new Error("WebSocket error"));
+		};
+	});
 }
+
+async function connectSession() {
+	await checkAndRecoverUID();
+}
+
+browser.runtime.onConnect.addListener((port) => {
+	if (port.name === "popup") {
+		// Send the current state when the popup connects
+		port.postMessage({ type: "SESSION_STATUS", isConnected });
+
+		// Listen for messages from the popup
+		port.onMessage.addListener(async (msg) => {
+			if (msg.type === "GET_STATUS") {
+				port.postMessage({ type: "SESSION_STATUS", isConnected });
+			} else if (msg.type === "SESSION_CONNECT") {
+				await connectSession();
+				port.postMessage({ text: "success" });
+			} else if (msg.type === "SESSION_DISCONNECT") {
+				try {
+					await disconnect();
+				} catch (error) {}
+
+				port.postMessage({ text: "success" });
+			}
+		});
+	}
+});
 
 function disconnect() {
 	if (webSocket == null) {
 		return;
 	}
-	webSocket.close();
+
+	return new Promise((resolve, reject) => {
+		// Define a new onclose handler that resolves the promise
+		webSocket.onclose = (event) => {
+			isConnected = false;
+			browser.storage.local.set({ isConnected });
+			webSocket = null;
+
+			// Resolve the promise indicating the WebSocket has closed
+			resolve();
+		};
+
+		// If a close event occurs without explicit disconnect
+		webSocket.onerror = (event) => {
+			isConnected = false;
+			browser.storage.local.set({ isConnected });
+			webSocket = null;
+			reject(new Error("WebSocket error occurred before closing"));
+		};
+
+		// Close the WebSocket
+		webSocket.close();
+	});
 }
 
 function saveUID(uid) {
 	browser.storage.local.set({ uid });
 }
 
-function getOrCreateUUID(callback) {
-	browser.storage.local.get("uid").then((result) => {
+function getOrCreateUUID() {
+	return browser.storage.local.get("uid").then((result) => {
 		if (result.uid) {
-			callback(result.uid);
+			return result.uid;
 		} else {
 			const newId = crypto.randomUUID();
 			saveUID(newId);
-			callback(newId);
+			return newId;
 		}
 	});
 }
 
-function setUp(sessionId) {
-	fetch(`${import.meta.env.VITE_BACKEND_URL}/api/token`, { credentials: "include" })
-		.then((response) => response.json())
-		.then((data) => {
-			if (data.token) {
-				connect(sessionId, data.token);
-			}
-		})
-		.catch((error) => console.log(error));
+async function setUp(sessionId) {
+	const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/token`, {
+		credentials: "include"
+	});
+	const data = await response.json();
+	if (data.token) {
+		await connect(sessionId, data.token);
+	}
 }
 
-function checkAndRecoverUID() {
-	getOrCreateUUID(function (id) {
-		sessionId = id;
-		setUp(sessionId);
-	});
+async function checkAndRecoverUID() {
+	const id = await getOrCreateUUID();
+	sessionId = id;
+	await setUp(sessionId);
 }
 
 browser.runtime.onInstalled.addListener(checkAndRecoverUID);
@@ -343,7 +420,7 @@ function formatTabObject(rawTab) {
 }
 
 function snapshotTabState() {
-	if (signed) {
+	if (isConnected) {
 		browser.tabs.query({}).then((rawTabs) => {
 			const tabs = rawTabs
 				.filter((rawTab) => !isExcludedUrl(rawTab.url))
@@ -369,7 +446,7 @@ function isExcludedUrl(url) {
 }
 
 function initialCaptureTabsState() {
-	if (signed) {
+	if (isConnected) {
 		browser.tabs.query({}).then((rawTabs) => {
 			const tabs = rawTabs
 				.filter((rawTab) => !isExcludedUrl(rawTab.url))

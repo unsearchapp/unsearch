@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { deleteSessionById, getSessionsByUser } from "../../db/sessionsModel";
 import { requireAuth } from "../middlewares/requireAuth";
+import { closeSession } from "../../wsServer/wsServer";
 import { usersConnections } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 
@@ -25,16 +26,15 @@ router.delete("/sessions", requireAuth, async (req, res) => {
 	try {
 		const sessionId = req.body.sessionId as string;
 
-		const rowsDeleted: number = await deleteSessionById(req.user!._id, sessionId);
+		// Close session if active
+		closeSession(sessionId);
 
-		// Send message back to extension
-		const message = JSON.stringify({ type: "SESSION_REMOVE" });
-		sendMessageToUser(req.user!._id, sessionId, message);
+		const rowsDeleted: number = await deleteSessionById(req.user!._id, sessionId);
 
 		res.json({ data: rowsDeleted });
 	} catch (error) {
 		logger.error("Error in /sessions DELETE route");
-		res.status(500).json({ error });
+		res.status(500).json({ data: 0 });
 	}
 });
 

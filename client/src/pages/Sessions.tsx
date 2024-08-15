@@ -35,7 +35,6 @@ import { deleteSession } from "@/api/sessions";
 export function Sessions() {
 	const [sessions, setSessions] = useState<Session[] | null>(null);
 	const [delSessionId, setDelSessionId] = useState<string | null>(null);
-	const [openDialog, setOpenDialog] = useState<boolean>(false);
 	const { toast } = useToast();
 
 	function fetchData() {
@@ -48,23 +47,22 @@ export function Sessions() {
 		fetchData();
 	}, []);
 
-	function deleteAction(e: any, _id: string) {
-		setDelSessionId(_id);
-		setOpenDialog(true);
-	}
-
-	function deleteHandler(e: any) {
+	function deleteHandler() {
 		if (delSessionId) {
 			deleteSession(delSessionId).then((deleted: number) => {
+				setDelSessionId(null);
+
 				if (deleted > 0) {
 					toast({
 						title: "Deleted",
 						description: "Session successfully deleted"
 					});
-
-					setOpenDialog(false);
-					setDelSessionId(null);
 					fetchData();
+				} else {
+					toast({
+						title: "Something went wrong",
+						description: "Could not remove the session. Please try again later."
+					});
 				}
 			});
 		}
@@ -75,7 +73,7 @@ export function Sessions() {
 			<div className="flex items-center justify-between">
 				<h1 className="text-lg font-semibold md:text-2xl">Sessions</h1>
 				<a
-					href='/logs'
+					href="/logs"
 					className={`${buttonVariants({
 						variant: "secondary"
 					})} hover:text-inherit`}
@@ -98,7 +96,7 @@ export function Sessions() {
 					{sessions &&
 						sessions.map((session) => {
 							return (
-								<TableRow>
+								<TableRow key={session._id}>
 									<TableCell className="flex gap-x-2 font-medium">
 										<img src={`./${session.browser}.svg`} className="w-5" />
 										<div className="flex flex-col">
@@ -133,7 +131,7 @@ export function Sessions() {
 											<DropdownMenuContent>
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
 												<DropdownMenuSeparator />
-												<DropdownMenuItem onClick={(e) => deleteAction(e, session._id)}>
+												<DropdownMenuItem onClick={(e) => setDelSessionId(session._id)}>
 													Delete
 												</DropdownMenuItem>
 											</DropdownMenuContent>
@@ -145,7 +143,7 @@ export function Sessions() {
 				</TableBody>
 			</Table>
 
-			<AlertDialog open={openDialog}>
+			<AlertDialog open={!!delSessionId}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete session</AlertDialogTitle>
@@ -155,7 +153,7 @@ export function Sessions() {
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={(e) => setOpenDialog(false)}>Cancel</AlertDialogCancel>
+						<AlertDialogCancel onClick={(e) => setDelSessionId(null)}>Cancel</AlertDialogCancel>
 						<AlertDialogAction onClick={deleteHandler}>Continue</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

@@ -63,6 +63,17 @@ export const sendMessageToUser = async (userId: string, sessionId: string, messa
 	}
 };
 
+export const closeSession = async (sessionId: string) => {
+	const userConnection = usersConnections.get(sessionId);
+	if (userConnection) {
+		// Check if the WebSocket connection is open
+		if (userConnection.ws.readyState === ws.OPEN) {
+			// Close the WebSocket connection
+			userConnection.ws.close();
+		}
+	}
+};
+
 // Throttle function to update session connected date to ensure it is called at most once every 30s per connection
 const throttledUpdateSessionLastConnectedDate = throttleFunction(
 	updateSessionLastConnectedDate,
