@@ -26,7 +26,7 @@ import {
 } from "ui";
 import { DotFilledIcon } from "@radix-ui/react-icons";
 import clsx from "clsx";
-import { getSessions } from "@/api/sessions";
+import { getSessions, logoutSession } from "@/api/sessions";
 import { PageLayout } from "@/components/Layout";
 import { Session } from "@/types/api";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
@@ -35,6 +35,7 @@ import { deleteSession } from "@/api/sessions";
 export function Sessions() {
 	const [sessions, setSessions] = useState<Session[] | null>(null);
 	const [delSessionId, setDelSessionId] = useState<string | null>(null);
+	const [disconnectSessionId, setDisconnectSessionId] = useState<string | null>(null);
 	const { toast } = useToast();
 
 	function fetchData() {
@@ -62,6 +63,27 @@ export function Sessions() {
 					toast({
 						title: "Something went wrong",
 						description: "Could not remove the session. Please try again later."
+					});
+				}
+			});
+		}
+	}
+
+	function disconnectHandler() {
+		if (disconnectSessionId) {
+			logoutSession(disconnectSessionId).then((success: boolean) => {
+				setDisconnectSessionId(null);
+
+				if (success) {
+					toast({
+						title: "Disconnected",
+						description: "Session successfully disconnected"
+					});
+					fetchData();
+				} else {
+					toast({
+						title: "Something went wrong",
+						description: "Could not disconnect the session. Please try again later."
 					});
 				}
 			});
@@ -131,6 +153,11 @@ export function Sessions() {
 											<DropdownMenuContent>
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
 												<DropdownMenuSeparator />
+												{session.active && (
+													<DropdownMenuItem onClick={(e) => setDisconnectSessionId(session._id)}>
+														Disconnect
+													</DropdownMenuItem>
+												)}
 												<DropdownMenuItem onClick={(e) => setDelSessionId(session._id)}>
 													Delete
 												</DropdownMenuItem>
@@ -155,6 +182,24 @@ export function Sessions() {
 					<AlertDialogFooter>
 						<AlertDialogCancel onClick={(e) => setDelSessionId(null)}>Cancel</AlertDialogCancel>
 						<AlertDialogAction onClick={deleteHandler}>Continue</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+
+			<AlertDialog open={!!disconnectSessionId}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Disconnect session</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to disconnect this session? Please note that to reconnect, the
+							session must be reactivated from the extension.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel onClick={(e) => setDisconnectSessionId(null)}>
+							Cancel
+						</AlertDialogCancel>
+						<AlertDialogAction onClick={disconnectHandler}>Continue</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>

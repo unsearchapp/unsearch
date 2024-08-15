@@ -22,6 +22,20 @@ router.get("/sessions", requireAuth, async (req, res) => {
 	}
 });
 
+router.post("/sessions/logout", requireAuth, async (req, res) => {
+	try {
+		const sessionId = req.body.sessionId as string;
+
+		// Close session if active
+		closeSession(sessionId);
+
+		res.json({ data: true });
+	} catch (error) {
+		logger.error("Error in /sessions/logout POST route");
+		res.status(500).json({ data: false });
+	}
+});
+
 router.delete("/sessions", requireAuth, async (req, res) => {
 	try {
 		const sessionId = req.body.sessionId as string;
