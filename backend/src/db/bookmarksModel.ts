@@ -63,6 +63,32 @@ export const getBookmarksByUser = async (userId: string): Promise<PublicBookmark
 	}
 };
 
+export const getBookmarksBySession = async (
+	userId: string,
+	sessionId: string
+): Promise<PublicBookmark[]> => {
+	try {
+		const columns: string[] = [
+			"_id",
+			"sessionId",
+			"dateAdded",
+			"dateGroupModified",
+			"dateLastUsed",
+			"id",
+			"index",
+			"parentId",
+			"title",
+			"url"
+		];
+		const bookmarks: PublicBookmark[] = await knex("Bookmarks")
+			.select(columns)
+			.where({ userId, sessionId });
+		return bookmarks;
+	} catch (error) {
+		throw error;
+	}
+};
+
 interface UpdateFields {
 	title?: string;
 	url?: string;

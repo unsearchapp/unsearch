@@ -5,10 +5,14 @@ import {
 	deleteBookmarkById,
 	updateBookmark,
 	moveBookmark,
-	createBookmark
+	createBookmark,
+	getBookmarksBySession,
+	PublicBookmark
 } from "../../db/bookmarksModel";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
+import fs from "fs";
+import path from "path";
 
 const router = Router();
 
@@ -109,6 +113,69 @@ router.delete("/bookmarks", requireAuth, async (req, res) => {
 		logger.error(error, "Error in /bookmarks DELETE route");
 		res.status(500).json({ error });
 	}
+});
+
+function buildBookmarkTree(bookmarks: PublicBookmark[]): any {
+	const bookmarkMap = new Map<string, any>();
+
+	// Initialize a map with all items
+	bookmarks.forEach((bookmark) => {
+		bookmarkMap.set(bookmark.id, { ...bookmark, children: [] });
+	});
+
+	// Build the tree by assigning children to their parent folders
+	const root: PublicBookmark[] = [];
+
+	bookmarks.forEach((bookmark) => {
+		if (bookmark.parentId) {
+			const parent = bookmarkMap.get(bookmark.parentId);
+			if (parent) {
+				parent.children.push(bookmarkMap.get(bookmark.id));
+			}
+		} else {
+			root.push(bookmarkMap.get(bookmark.id));
+		}
+	});
+
+	return root;
+}
+
+const generateBookmarkHTML = (items: any[]): string => {
+	let html = "<DL><p>\n";
+
+	items.forEach((item) => {
+		if (item.url) {
+			// It's a bookmark
+			html += `<DT><A HREF="${item.url}">${item.title}</A>\n`;
+		} else {
+			// It's a folder
+			html += `<DT><H3>${item.title}</H3>\n`;
+			html += generateBookmarkHTML(item.children);
+		}
+	});
+
+	html += "</DL><p>\n";
+	return html;
+};
+
+router.get("/bookmarks/export", requireAuth, async (req: Request, res: Response) => {
+	const sessionId = req.query.sessionId as string;
+	const bookmarks = await getBookmarksBySession(req.user!._id, sessionId);
+	const bookmarkTree = buildBookmarkTree(bookmarks);
+
+	let bookmarksHtml = `<DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n`;
+
+	bookmarksHtml += generateBookmarkHTML(bookmarkTree);
+
+	const filePath = path.join(__dirname, "bookmarks.html");
+	fs.writeFileSync(filePath, bookmarksHtml);
+
+	res.download(filePath, "bookmarks.html", (err) => {
+		if (err) {
+			console.error("Error downloading bookmarks:", err);
+		}
+		fs.unlinkSync(filePath); // Delete file after sending
+	});
 });
 
 export default router;

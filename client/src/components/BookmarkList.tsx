@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
 	Table,
 	TableBody,
@@ -10,10 +10,12 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbSeparator,
-	Button
+	Button,
+	useToast
 } from "ui";
 import { BookmarkItem } from "./BookmarkItem";
 import { Bookmark, Session } from "../types/api";
+import { exportBookmarks } from "@/api/bookmarks";
 
 interface BookmarkListProps {
 	bookmarks: Bookmark[];
@@ -40,6 +42,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 	setBookmarkToMove,
 	createFolder
 }) => {
+	const { toast } = useToast();
+	const [exportLoading, setExportLoading] = useState<boolean>(false);
+
 	// Filter bookmarks to only show the ones in the current folder & in the same session as the current folder
 	const filteredBookmarks = bookmarks.filter((bookmark) =>
 		currentFolder
@@ -50,6 +55,24 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 	// Set option to create folder if it isn't a root folder
 	const canCreateFolder =
 		currentFolder && currentFolder.id !== "0" && currentFolder.id !== "root________";
+
+	// Display export button only on root folders
+	const canExport =
+		currentFolder && (currentFolder.id === "0" || currentFolder.id === "root________");
+
+	async function handleExport(sessionId: string) {
+		try {
+			setExportLoading(true);
+			await exportBookmarks(sessionId);
+		} catch (error) {
+			toast({
+				title: "Something went wrong",
+				description: "Could not export bookmarks. Please try again later."
+			});
+		} finally {
+			setExportLoading(false);
+		}
+	}
 
 	return (
 		<div>
@@ -78,6 +101,11 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 					</BreadcrumbList>
 				</Breadcrumb>
 				{canCreateFolder && <Button onClick={() => createFolder(currentFolder)}>New folder</Button>}
+				{canExport && (
+					<Button variant="secondary" onClick={() => handleExport(currentFolder.sessionId)}>
+						Export bookmarks
+					</Button>
+				)}
 			</div>
 
 			<Table className="mt-8">

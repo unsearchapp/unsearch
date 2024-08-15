@@ -79,3 +79,25 @@ export const deleteBookmark = async (id: string, sessionId: string): Promise<num
 	const data: ApiResponse<number> = await response.json();
 	return data.data;
 };
+
+export const exportBookmarks = async (sessionId: string) => {
+	const response = await fetch(`/api/bookmarks/export?sessionId=${sessionId}`, {
+		method: "GET",
+		credentials: "include"
+	});
+
+	if (!response.ok) {
+		throw new Error("Error during bookmarks export");
+	}
+
+	if (response.ok) {
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "bookmarks.html";
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+	}
+};
