@@ -19,12 +19,13 @@ import {
 	TableCell,
 	TableRow,
 	Toaster,
-	useToast
+	useToast,
+	Button
 } from "ui";
 import { getTabs, deleteTab } from "@/api/tabs";
 import { PageLayout } from "@/components/Layout";
-import { GroupedTabData } from "@/types/api";
-import { DotsVerticalIcon } from "@radix-ui/react-icons";
+import { GroupedTabData, Tab } from "@/types/api";
+import { DotsVerticalIcon, ExternalLinkIcon } from "@radix-ui/react-icons";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 export function Tabs() {
@@ -87,6 +88,12 @@ export function Tabs() {
 		}
 	}
 
+	function openTabs(tabs: Tab[]) {
+		tabs.forEach((tab) => {
+			window.open(tab.url, "_blank");
+		});
+	}
+
 	return (
 		<PageLayout>
 			<div className="flex items-center">
@@ -102,12 +109,22 @@ export function Tabs() {
 				{tabs &&
 					Object.keys(tabs).map((key, index) => (
 						<>
-							<div className="my-2 text-sm font-bold text-gray-400">
-								{new Date(key).toLocaleString()} · {Object.keys(tabs[key]).length} window
-								{Object.keys(tabs[key]).length > 1 ? "s" : null}
+							<div className="flex items-center gap-x-6">
+								<div className="my-2 text-sm font-bold text-gray-400">
+									{new Date(key).toLocaleString()} · {Object.keys(tabs[key]).length} window
+									{Object.keys(tabs[key]).length > 1 ? "s" : null}
+								</div>
 							</div>
 							{Object.keys(tabs[key]).map((k, index) => (
 								<Table className="my-2 border">
+									<Button
+										className="flex items-center gap-x-2"
+										variant={"link"}
+										onClick={() => openTabs(tabs[key][k])}
+									>
+										<ExternalLinkIcon className="w-4" />
+										Open tabs
+									</Button>
 									<TableBody>
 										{tabs[key][k].map((item) => (
 											<TableRow

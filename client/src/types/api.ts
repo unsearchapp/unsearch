@@ -31,7 +31,7 @@ export interface HistoryItem {
 	typedCount?: number;
 }
 
-interface Tab {
+export interface Tab {
 	_id: string;
 	sessionId: string;
 	date: string;
