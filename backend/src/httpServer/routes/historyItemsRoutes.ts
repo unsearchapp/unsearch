@@ -1,6 +1,7 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import {
 	getHistoryItemsByUser,
+	getUserHistoryForExport,
 	fuzzyHistoryItemsSearch,
 	deleteHistoryItems,
 	semanticHistoryItemsSearch,
@@ -82,6 +83,43 @@ router.delete("/history-items", requireAuth, async (req, res) => {
 		res.json({ data: deletedRows });
 	} catch (error) {
 		logger.error(error, "Error in /history-items delete route");
+		res.status(500).json({ error });
+	}
+});
+
+router.get("/history-items/export", requireAuth, async (req: Request, res: Response) => {
+	try {
+		const historyItems = await getUserHistoryForExport(req.user!._id);
+
+		// Prepare CSV headers
+		const headers = ["id", "title", "url", "lastVisitTime", "visitCount", "typedCount"];
+		const csvRows: string[] = [];
+
+		// Add headers to CSV rows
+		csvRows.push(headers.join(","));
+
+		// Add each history item to CSV rows
+		historyItems.forEach((item) => {
+			const row = [
+				`"${item.id}"`,
+				item.title ? `"${item.title.replace(/"/g, '""')}"` : "", // Escape quotes in title or empty if undefined
+				item.url ? `"${item.url.replace(/"/g, '""')}"` : "", // Escape quotes in URL or empty if undefined
+				item.lastVisitTime ? `"${item.lastVisitTime.toISOString()}"` : "", // Convert date to ISO string or empty if undefined
+				item.visitCount !== undefined ? `"${item.visitCount}"` : "", // Convert visitCount to string or empty if undefined
+				item.typedCount !== undefined ? `"${item.typedCount}"` : "" // Convert typedCount to string or empty if undefined
+			];
+			csvRows.push(row.join(","));
+		});
+
+		// Join all rows with newline characters
+		const csvData = csvRows.join("\n");
+
+		// Set headers and send response
+		res.header("Content-Type", "text/csv");
+		res.attachment("historyItems.csv");
+		res.send(csvData);
+	} catch (error) {
+		logger.error(error, "Error in /history-items/export GET route");
 		res.status(500).json({ error });
 	}
 });

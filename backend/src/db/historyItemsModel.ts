@@ -15,6 +15,8 @@ export interface HistoryItem {
 
 export type HistoryItemInsert = Omit<HistoryItem, "_id">;
 
+export type PublicHistoryItem = Omit<HistoryItem, "_id" | "userId" | "sessionId">;
+
 export const getHistoryItemsByUser = async (
 	userId: string,
 	sessionsIds: string[],
@@ -36,6 +38,22 @@ export const getHistoryItemsByUser = async (
 					});
 				}
 			});
+
+		const historyItems: HistoryItem[] = await knexQuery;
+		return historyItems;
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const getUserHistoryForExport = async (userId: string): Promise<PublicHistoryItem[]> => {
+	try {
+		const columns: string[] = ["id", "url", "title", "lastVisitTime", "visitCount", "typedCount"];
+
+		const knexQuery = knex("HistoryItems")
+			.select(columns)
+			.where({ userId })
+			.orderBy("lastVisitTime", "desc");
 
 		const historyItems: HistoryItem[] = await knexQuery;
 		return historyItems;

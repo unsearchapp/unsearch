@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { columns } from "@/components/columns";
 import { DataTable } from "@/components/dataTable";
 import { HistoryItem } from "@/types/api";
-import { getHistoryItems } from "@/api/historyItems";
+import { getHistoryItems, exportHistoryItems } from "@/api/historyItems";
 import { MagnifyingGlassIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { PageLayout } from "@/components/Layout";
 import {
@@ -14,7 +14,9 @@ import {
 	SelectValue,
 	Label,
 	Button,
-	MultiSelect
+	MultiSelect,
+	Toaster,
+	useToast
 } from "ui";
 import { getSessions } from "@/api/sessions";
 
@@ -25,6 +27,8 @@ export const Main = () => {
 	const [searchType, setSearchType] = useState<string>("exact");
 	const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
 	const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
+	const [exportLoading, setExportLoading] = useState<boolean>(false);
+	const { toast } = useToast();
 
 	const fetchData = async () => {
 		setLoadingSearch(true);
@@ -50,10 +54,28 @@ export const Main = () => {
 		}
 	}, [query]);
 
+	async function handleExport() {
+		try {
+			setExportLoading(true);
+			await exportHistoryItems();
+		} catch (error) {
+			toast({
+				title: "Something went wrong",
+				description: "Could not export history. Please try again later."
+			});
+		} finally {
+			setExportLoading(false);
+		}
+	}
+
 	return (
 		<PageLayout>
-			<div className="flex items-center">
+			<div className="flex items-center justify-between">
 				<h1 className="text-lg font-semibold md:text-2xl">Browsing history</h1>
+				<Button variant="secondary" onClick={handleExport} disabled={exportLoading}>
+					{exportLoading ? <ReloadIcon className="mr-2 h-4 w-4 animate-spin" /> : null}
+					Export history
+				</Button>
 			</div>
 			<div>
 				<div className="mb-6 flex items-end gap-x-4">
@@ -100,6 +122,8 @@ export const Main = () => {
 
 				<DataTable columns={columns} data={data} />
 			</div>
+
+			<Toaster />
 		</PageLayout>
 	);
 };

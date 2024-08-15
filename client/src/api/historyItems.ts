@@ -35,3 +35,25 @@ export const deleteHistoryItems = async (all: boolean, ids: string[]): Promise<n
 	const data: ApiResponse<number> = await response.json();
 	return data.data;
 };
+
+export const exportHistoryItems = async () => {
+	const response = await fetch("/api/history-items/export", {
+		credentials: "include",
+		headers: {
+			"Content-Type": "application/json"
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error("Error during history export");
+	}
+
+	const blob = await response.blob();
+	const url = window.URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = "history.csv";
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+};
