@@ -20,13 +20,14 @@ export type PublicHistoryItem = Omit<HistoryItem, "_id" | "userId" | "sessionId"
 export const getHistoryItemsByUser = async (
 	userId: string,
 	sessionsIds: string[],
+	pageSize: number,
+	offset: number,
 	query?: string
-): Promise<HistoryItem[]> => {
+): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
-		const knexQuery = knex("HistoryItems")
+		const baseQuery = knex("HistoryItems")
 			.select()
 			.where({ userId })
-			.orderBy("lastVisitTime", "desc")
 			.modify(function (builder: Knex.QueryBuilder) {
 				if (sessionsIds.length > 0) {
 					builder.whereIn("sessionId", sessionsIds);
@@ -39,8 +40,31 @@ export const getHistoryItemsByUser = async (
 				}
 			});
 
-		const historyItems: HistoryItem[] = await knexQuery;
-		return historyItems;
+		// Query to fetch paginated items
+		const itemsQuery = baseQuery
+			.clone() // Clone the base query to avoid modifying it
+			.select()
+			.orderBy("lastVisitTime", "desc")
+			.limit(pageSize)
+			.offset(offset);
+
+		// Query to fetch total number of items
+		const countQuery = baseQuery
+			.clone() // Clone the base query again
+			.count({ total: "*" })
+			.first(); // .first() to get a single object with the count
+
+		// Execute both queries in parallel
+		const [items, totalResult] = await Promise.all([itemsQuery, countQuery]);
+
+		// Extract the total count from the result
+		const totalItems = totalResult?.total ? parseInt(totalResult.total, 10) : 0;
+
+		// Return both items and total count
+		return {
+			items,
+			totalItems
+		};
 	} catch (error) {
 		throw error;
 	}
@@ -65,10 +89,12 @@ export const getUserHistoryForExport = async (userId: string): Promise<PublicHis
 export const fuzzyHistoryItemsSearch = async (
 	userId: string,
 	sessionsIds: string[],
+	pageSize: number,
+	offset: number,
 	query?: string
-): Promise<HistoryItem[]> => {
+): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
-		const knexQuery = knex("HistoryItems")
+		const baseQuery = knex("HistoryItems")
 			.select()
 			.where({ userId })
 			.modify(function (builder: Knex.QueryBuilder) {
@@ -87,15 +113,33 @@ export const fuzzyHistoryItemsSearch = async (
 						[query]
 					);
 				});
-			})
+			});
+
+		// Query to fetch paginated items
+		const itemsQuery = baseQuery
+			.clone()
 			.orderByRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) DESC", [
 				query,
 				query
 			])
-			.orderBy("lastVisitTime", "desc");
+			.orderBy("lastVisitTime", "desc")
+			.limit(pageSize)
+			.offset(offset);
 
-		const historyItems: HistoryItem[] = await knexQuery;
-		return historyItems;
+		// Query to fetch total number of items
+		const countQuery = baseQuery.clone().count({ total: "*" }).first(); // .first() to get a single object with the count
+
+		// Execute both queries in parallel
+		const [items, totalResult] = await Promise.all([itemsQuery, countQuery]);
+
+		// Extract the total count from the result
+		const totalItems = totalResult?.total ? parseInt(totalResult.total, 10) : 0;
+
+		// Return both items and total count
+		return {
+			items,
+			totalItems
+		};
 	} catch (error) {
 		throw error;
 	}
@@ -104,13 +148,15 @@ export const fuzzyHistoryItemsSearch = async (
 export const semanticHistoryItemsSearch = async (
 	userId: string,
 	sessionsIds: string[],
-	wordsWithSimilarities: Map<string, number>
-): Promise<HistoryItem[]> => {
+	wordsWithSimilarities: Map<string, number>,
+	pageSize: number,
+	offset: number
+): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
-		const knexQuery = knex("HistoryItems")
+		const baseQuery = knex("HistoryItems")
 			.select()
 			.where({ userId })
-			.modify(function (builder: Knex.QueryBuilder) {
+			.modify((builder: Knex.QueryBuilder) => {
 				if (sessionsIds.length > 0) {
 					builder.whereIn("sessionId", sessionsIds);
 				}
@@ -119,23 +165,41 @@ export const semanticHistoryItemsSearch = async (
 				wordsWithSimilarities.forEach((_, word) => {
 					builder.orWhere("title", "like", `%${word}%`).orWhere("url", "like", `%${word}%`);
 				});
-			})
-			.orderBy("lastVisitTime", "desc");
+			});
 
-		const historyItems: HistoryItem[] = await knexQuery;
+		// Query to fetch paginated items
+		const itemsQuery = baseQuery
+			.clone()
+			.orderBy("lastVisitTime", "desc")
+			.limit(pageSize)
+			.offset(offset);
+
+		// Query to fetch total number of items
+		const countQuery = baseQuery.clone().count({ total: "*" }).first(); // .first() to get a single object with the count
+
+		// Execute both queries in parallel
+		const [items, totalResult] = await Promise.all([itemsQuery, countQuery]);
+
+		// Extract the total count from the result
+		const totalItems = totalResult?.total ? parseInt(totalResult.total.toString(), 10) : 0;
 
 		// Calculate similarity and rank results
-		const results = historyItems.map((item) => {
-			const titleSimilarity = (item.title && wordsWithSimilarities.get(item.title)) || 0;
-			const urlSimilarity = (item.url && wordsWithSimilarities.get(item.url)) || 0;
+		const results = (items as HistoryItem[]).map((item) => {
+			const titleSimilarity = item.title ? wordsWithSimilarities.get(item.title) || 0 : 0;
+			const urlSimilarity = item.url ? wordsWithSimilarities.get(item.url) || 0 : 0;
 			const combinedSimilarity = (titleSimilarity + urlSimilarity) / 2;
 
 			return { ...item, similarity: combinedSimilarity };
 		});
 
-		results.sort((a, b) => b.similarity - a.similarity);
+		// Sort the results by similarity in descending order
+		results.sort((a, b) => b.similarity! - a.similarity!);
 
-		return historyItems;
+		// Return both items (sorted by similarity) and total count
+		return {
+			items: results,
+			totalItems
+		};
 	} catch (error) {
 		throw error;
 	}
@@ -173,21 +237,26 @@ export interface deleteHistoryResults {
 
 export const deleteHistoryItems = async (
 	userId: string,
-	ids: string[]
+	ids: string[],
+	all: boolean
 ): Promise<deleteHistoryResults> => {
+	let itemsToDelete: Array<{ sessionId: string; url: string }> = [];
+	let deletedRows: number = 0;
+
 	const transaction = await knex.transaction();
 
 	try {
-		const itemsToDelete = await transaction("HistoryItems")
-			.where({ userId })
-			.whereIn("_id", ids)
-			.select("sessionId", "url");
+		if (all) {
+			// Delete all items for the given userId
+			deletedRows = await transaction("HistoryItems").where({ userId }).del();
+		} else {
+			itemsToDelete = await transaction("HistoryItems")
+				.where({ userId })
+				.whereIn("_id", ids)
+				.select("sessionId", "url");
 
-		const deletedRows: number = await transaction("HistoryItems")
-			.where({ userId })
-			.whereIn("_id", ids)
-			.del();
-
+			deletedRows = await transaction("HistoryItems").where({ userId }).whereIn("_id", ids).del();
+		}
 		// Commit the transaction
 		await transaction.commit();
 

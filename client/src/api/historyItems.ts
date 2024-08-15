@@ -1,13 +1,15 @@
-import { HistoryItem, ApiResponse } from "../types/api";
+import { HistoryResponse, ApiResponse } from "../types/api";
 
 export const getHistoryItems = async (
 	query: string,
 	searchType: string,
-	selectedSessions: string[]
-): Promise<HistoryItem[]> => {
+	selectedSessions: string[],
+	page: number
+): Promise<HistoryResponse> => {
 	const params = new URLSearchParams({
 		q: query,
-		searchType: searchType
+		searchType: searchType,
+		page: page.toString()
 	});
 
 	// Add each item in the array as a separate query parameter
@@ -19,7 +21,7 @@ export const getHistoryItems = async (
 	const response = await fetch(`/api/history-items?${queryString}`, {
 		credentials: "include"
 	});
-	const data: ApiResponse<HistoryItem[]> = await response.json();
+	const data: ApiResponse<HistoryResponse> = await response.json();
 	return data.data;
 };
 

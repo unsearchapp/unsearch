@@ -10,14 +10,19 @@ import {
 import { requireAuth } from "../middlewares/requireAuth";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
+import { getSessionsByUser } from "../../db/sessionsModel";
 
 const router = Router();
 
 router.get("/history-items", requireAuth, async (req, res) => {
 	try {
+		const pageSize = 25;
 		const query = req.query.q as string;
+		const page = req.query.page as string;
 		const searchType = req.query.searchType as string;
 		const rawSessions = req.query.s as string | undefined | string[];
+
+		const offset = (Number(page) - 1) * pageSize;
 
 		const arraySessions: string[] = Array.isArray(rawSessions)
 			? rawSessions
@@ -25,14 +30,27 @@ router.get("/history-items", requireAuth, async (req, res) => {
 				? [rawSessions]
 				: [];
 
-		let historyItems: HistoryItem[] = [];
+		let items: HistoryItem[] = [];
+		let totalItems: number = 0;
 		switch (searchType) {
 			case "exact":
-				historyItems = await getHistoryItemsByUser(req.user!._id, arraySessions, query);
+				({ items, totalItems } = await getHistoryItemsByUser(
+					req.user!._id,
+					arraySessions,
+					pageSize,
+					offset,
+					query
+				));
 				break;
 
 			case "fuzzy":
-				historyItems = await fuzzyHistoryItemsSearch(req.user!._id, arraySessions, query);
+				({ items, totalItems } = await fuzzyHistoryItemsSearch(
+					req.user!._id,
+					arraySessions,
+					pageSize,
+					offset,
+					query
+				));
 				break;
 
 			case "semantic":
@@ -46,44 +64,64 @@ router.get("/history-items", requireAuth, async (req, res) => {
 						wordsWithSimilarities.set(word, similarity);
 					});
 
-					historyItems = await semanticHistoryItemsSearch(
+					({ items, totalItems } = await semanticHistoryItemsSearch(
 						req.user!._id,
 						arraySessions,
-						wordsWithSimilarities
-					);
+						wordsWithSimilarities,
+						pageSize,
+						offset
+					));
 				} else {
-					historyItems = await getHistoryItemsByUser(req.user!._id, arraySessions, query); // Fetch all history
+					({ items, totalItems } = await getHistoryItemsByUser(
+						req.user!._id,
+						arraySessions,
+						pageSize,
+						offset,
+						query
+					)); // Fetch all history
 				}
 
 				break;
 		}
 
-		res.json({ data: historyItems });
+		res.json({ data: { items, totalItems } });
 	} catch (error) {
 		logger.error(error, "Error in /history-items GET route");
-		res.status(500).json({ error });
+		res.status(500).json({ data: { items: [], totalItems: 0 } });
 	}
 });
 
 router.delete("/history-items", requireAuth, async (req, res) => {
 	try {
 		const ids = req.body.ids as string[];
+		const all = req.body.all as boolean;
 
-		const { itemsToDelete, deletedRows } = await deleteHistoryItems(req.user!._id, ids);
+		const { itemsToDelete, deletedRows } = await deleteHistoryItems(req.user!._id, ids, all);
 
 		// Send message to extension
-		itemsToDelete.forEach((item) => {
-			const message = JSON.stringify({
-				type: "HISTORY_REMOVE",
-				payload: { url: item.url }
+		if (all) {
+			const sessions = await getSessionsByUser(req.user!._id);
+			sessions.forEach((session) => {
+				const message = JSON.stringify({
+					type: "HISTORY_REMOVE",
+					payload: { url: "", all }
+				});
+				sendMessageToUser(req.user!._id, session._id, message);
 			});
-			sendMessageToUser(req.user!._id, item.sessionId, message);
-		});
+		} else {
+			itemsToDelete.forEach((item) => {
+				const message = JSON.stringify({
+					type: "HISTORY_REMOVE",
+					payload: { url: item.url }
+				});
+				sendMessageToUser(req.user!._id, item.sessionId, message);
+			});
+		}
 
 		res.json({ data: deletedRows });
 	} catch (error) {
 		logger.error(error, "Error in /history-items delete route");
-		res.status(500).json({ error });
+		res.status(500).json({ data: 0 });
 	}
 });
 

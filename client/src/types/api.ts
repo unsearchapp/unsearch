@@ -31,6 +31,11 @@ export interface HistoryItem {
 	typedCount?: number;
 }
 
+export interface HistoryResponse {
+	items: HistoryItem[];
+	totalItems: number;
+}
+
 export interface Tab {
 	_id: string;
 	sessionId: string;

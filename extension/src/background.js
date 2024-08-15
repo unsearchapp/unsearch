@@ -280,8 +280,15 @@ function connect(sessionId, token) {
 					}
 
 					case "HISTORY_REMOVE":
+						const all = payload.all;
 						const url = payload.url;
-						browser.history.deleteUrl({ url }); // see also deleteRange
+
+						if (all) {
+							browser.history.deleteAll();
+						} else {
+							browser.history.deleteUrl({ url }); // see also deleteRange
+						}
+
 						break;
 
 					default:
