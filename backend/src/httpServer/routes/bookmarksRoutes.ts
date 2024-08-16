@@ -3,7 +3,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import {
 	getBookmarksByUser,
 	deleteBookmarkById,
-	updateBookmark,
+	updateBookmarkById,
 	moveBookmark,
 	createBookmark,
 	getBookmarksBySession,
@@ -45,7 +45,7 @@ router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 
 		// send message to extension
 		const type = "BOOKMARKS_CREATE";
-		const payload = { _id, createDetails: { index, parentId, title, url } };
+		const payload = { _id, id, createDetails: { index, parentId, title, url } };
 		sendMessageToUser(userId, sessionId, type, payload);
 
 		res.json({ data: true });
@@ -58,19 +58,18 @@ router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 router.patch("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 	try {
 		const userId = req.user!._id;
-		const { sessionId, id, title, url } = req.body;
+		const { sessionId, _id, title, url } = req.body;
+		const { rowsUpdated, updatedId } = await updateBookmarkById(_id, userId, url, title);
 
-		const updatedRows = await updateBookmark(id, userId, sessionId, url, title);
-
-		if (updatedRows > 0) {
+		if (rowsUpdated > 0) {
 			// send message to extension
 			const type = "BOOKMARKS_UPDATE";
-			const payload = { id, changes: { title, url } };
+			const payload = { id: updatedId, changes: { title, url } };
 
 			sendMessageToUser(userId, sessionId, type, payload);
 		}
 
-		res.json({ data: updatedRows });
+		res.json({ data: rowsUpdated });
 	} catch (error) {
 		logger.error(error, "Error in /bookmarks POST route");
 		res.status(500).json({ error });

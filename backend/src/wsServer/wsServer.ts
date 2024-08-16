@@ -27,7 +27,7 @@ import { UserConnection } from "./models/wsServer";
 import { Session } from "../db/sessionsModel";
 import {
 	Message,
-	createPendingMessage,
+	handlePendingMessage,
 	getPendingMessagesBySession,
 	updateMessageStatus
 } from "../db/messagesModel";
@@ -50,7 +50,8 @@ export const sendMessageToUser = async (
 	userId: string,
 	sessionId: string,
 	type: string,
-	payload: any
+	payload: any,
+	messageId?: string // Optional messageId to track the pending message
 ) => {
 	const userConnection = usersConnections.get(sessionId);
 	const message = JSON.stringify({ type, payload });
@@ -59,13 +60,23 @@ export const sendMessageToUser = async (
 		// User is connected, send the message
 		try {
 			userConnection.ws.send(message);
+			// If there's a messageId provided, mark it as sent
+			if (messageId) {
+				await updateMessageStatus(messageId);
+			}
 		} catch (error) {
 			logger.error(error, "Error sending to user session");
 			// If sending fails, add to the message queue
-			await createPendingMessage(userId, sessionId, type, payload);
+			if (!messageId) {
+				// Pending message is already in db
+				await handlePendingMessage(userId, sessionId, type, payload);
+			}
 		}
 	} else {
-		await createPendingMessage(userId, sessionId, type, payload);
+		if (!messageId) {
+			// Pending message is already in db
+			await handlePendingMessage(userId, sessionId, type, payload);
+		}
 	}
 };
 
@@ -270,7 +281,7 @@ wss.on("connection", (ws: any, req: any) => {
 							try {
 								await bookmarksSetIdHandler(payload);
 							} catch (error) {
-								logger.error(error, "Error in bookmarks update handler");
+								logger.error(error, "Error in bookmarks setid handler");
 								ws.send(JSON.stringify({ type: "ERROR", error }));
 							}
 						} else {

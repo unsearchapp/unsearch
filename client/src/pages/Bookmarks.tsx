@@ -132,7 +132,7 @@ export function Bookmarks() {
 				formattedUrl = ensureProtocol(url);
 			}
 
-			updateBookmark(bookmarkToEdit.id, bookmarkToEdit.sessionId, title + "", formattedUrl).then(
+			updateBookmark(bookmarkToEdit._id, bookmarkToEdit.sessionId, title + "", formattedUrl).then(
 				(updated: number) => {
 					if (updated > 0) {
 						toast({
@@ -207,7 +207,6 @@ export function Bookmarks() {
 			const index = largestIndex + 1;
 
 			if (operation === "copy") {
-				console.log(targetFolder.sessionId);
 				createBookmark(
 					targetFolder.id,
 					targetFolder.sessionId,

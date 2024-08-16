@@ -32,14 +32,14 @@ export const createBookmark = async (
 };
 
 export const updateBookmark = async (
-	id: string,
+	_id: string,
 	sessionId: string,
 	title: string,
 	url: string | undefined
 ): Promise<number> => {
 	const response = await fetch("/api/bookmarks", {
 		method: "PATCH",
-		body: JSON.stringify({ id, sessionId, title, url }),
+		body: JSON.stringify({ _id, sessionId, title, url }),
 		credentials: "include",
 		headers: {
 			"Content-Type": "application/json"
