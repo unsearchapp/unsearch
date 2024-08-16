@@ -2,7 +2,7 @@ if (typeof importScripts === "function") {
 	importScripts("browser-polyfill.js");
 }
 
-const BROWSER = "chrome";
+const BROWSER = import.meta.env.VITE_BROWSER;
 const ongoingOperations = new Set();
 
 const checkAuth = async () => {
