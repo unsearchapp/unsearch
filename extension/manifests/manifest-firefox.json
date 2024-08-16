@@ -20,5 +20,10 @@
 	},
 	"content_security_policy": {
 		"extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:5000 ws://localhost:1234"
+	},
+	"browser_specific_settings": {
+		"gecko": {
+			"id": "contact@unsearch.app"
+		}
 	}
 }
