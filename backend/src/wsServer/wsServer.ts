@@ -230,7 +230,7 @@ wss.on("connection", (ws: any, req: any) => {
 								await bookmarksDeleteHandler(payload, userId, sessionId);
 							} catch (error) {
 								logger.error(error, "Error in bookmarks delete handler");
-								ws.send(JSON.stringify({ type: "ERROR", error }));
+								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
 						} else {
 							logger.info("Invalid bookmarks delete payload");
@@ -247,7 +247,7 @@ wss.on("connection", (ws: any, req: any) => {
 								await bookmarksMoveHandler(payload, userId, sessionId);
 							} catch (error) {
 								logger.error(error, "Error in bookmarks move handler");
-								ws.send(JSON.stringify({ type: "ERROR", error }));
+								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
 						} else {
 							logger.info("Invalid bookmarks move payload");
@@ -264,7 +264,7 @@ wss.on("connection", (ws: any, req: any) => {
 								await bookmarksUpdateHandler(payload, userId, sessionId);
 							} catch (error) {
 								logger.error(error, "Error in bookmarks update handler");
-								ws.send(JSON.stringify({ type: "ERROR", error }));
+								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
 						} else {
 							logger.info("Invalid bookmarks update payload");
@@ -282,7 +282,7 @@ wss.on("connection", (ws: any, req: any) => {
 								await bookmarksSetIdHandler(payload);
 							} catch (error) {
 								logger.error(error, "Error in bookmarks setid handler");
-								ws.send(JSON.stringify({ type: "ERROR", error }));
+								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
 						} else {
 							logger.info("Invalid bookmarks setid payload");
@@ -299,7 +299,7 @@ wss.on("connection", (ws: any, req: any) => {
 								await addTabsHandler(payload, userId, sessionId);
 							} catch (error) {
 								logger.error(error, "Error in tabs add handler");
-								ws.send(JSON.stringify({ type: "ERROR", error }));
+								ws.send(JSON.stringify({ type: "ERROR" }));
 							}
 						} else {
 							logger.info("Invalid tabs add payload");
