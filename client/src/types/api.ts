@@ -75,7 +75,8 @@ export interface ApiResponse<T> {
 export interface Log {
 	_id: string;
 	sessionId: string;
-	message: string;
+	msg_type: string;
+	msg_payload: any;
 	status: string;
 	createdAt: Date;
 	sentAt?: Date;

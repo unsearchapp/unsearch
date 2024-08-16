@@ -102,19 +102,17 @@ router.delete("/history-items", requireAuth, async (req, res) => {
 		if (all) {
 			const sessions = await getSessionsByUser(req.user!._id);
 			sessions.forEach((session) => {
-				const message = JSON.stringify({
-					type: "HISTORY_REMOVE",
-					payload: { url: "", all }
-				});
-				sendMessageToUser(req.user!._id, session._id, message);
+				const type = "HISTORY_REMOVE";
+				const payload = { url: "", all };
+
+				sendMessageToUser(req.user!._id, session._id, type, payload);
 			});
 		} else {
 			itemsToDelete.forEach((item) => {
-				const message = JSON.stringify({
-					type: "HISTORY_REMOVE",
-					payload: { url: item.url }
-				});
-				sendMessageToUser(req.user!._id, item.sessionId, message);
+				const type = "HISTORY_REMOVE";
+				const payload = { url: item.url };
+
+				sendMessageToUser(req.user!._id, item.sessionId, type, payload);
 			});
 		}
 

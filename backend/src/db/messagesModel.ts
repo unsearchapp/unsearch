@@ -4,7 +4,8 @@ export interface Message {
 	_id: string;
 	userId: string;
 	sessionId: string;
-	message: string;
+	msg_type: string;
+	msg_payload: any;
 	status: string;
 	createdAt: Date;
 	sentAt: Date;
@@ -23,11 +24,12 @@ interface MessageWithSession extends Message {
 export const createPendingMessage = async (
 	userId: string,
 	sessionId: string,
-	message: string
+	msg_type: string,
+	msg_payload: any
 ): Promise<string> => {
 	try {
 		const messageId: string = await knex("Messages")
-			.insert({ userId, sessionId, message })
+			.insert({ userId, sessionId, msg_type, msg_payload })
 			.returning("_id");
 		return messageId;
 	} catch (error) {
@@ -63,7 +65,8 @@ export const getMessagesByUser = async (
 			_id: row._id,
 			userId: row.userId,
 			sessionId: row.sessionId,
-			message: row.message,
+			msg_type: row.msg_type,
+			msg_payload: row.msg_payload,
 			status: row.status,
 			createdAt: row.createdAt,
 			sentAt: row.sentAt,

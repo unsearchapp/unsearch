@@ -76,7 +76,7 @@ export const Logs = () => {
 								<TableCell>{new Date(log.createdAt).toLocaleString()}</TableCell>
 								<TableCell>{log.sentAt ? new Date(log.sentAt).toLocaleString() : null}</TableCell>
 								<TableCell className="max-w-md truncate text-muted-foreground">
-									{log.message}
+									{log.msg_type}
 								</TableCell>
 							</TableRow>
 						))}

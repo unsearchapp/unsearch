@@ -46,8 +46,14 @@ const wss = new ws.WebSocketServer({ port: parseInt(port) });
 
 export const usersConnections: Map<string, UserConnection> = new Map();
 
-export const sendMessageToUser = async (userId: string, sessionId: string, message: string) => {
+export const sendMessageToUser = async (
+	userId: string,
+	sessionId: string,
+	type: string,
+	payload: any
+) => {
 	const userConnection = usersConnections.get(sessionId);
+	const message = JSON.stringify({ type, payload });
 
 	if (userConnection) {
 		// User is connected, send the message
@@ -56,10 +62,10 @@ export const sendMessageToUser = async (userId: string, sessionId: string, messa
 		} catch (error) {
 			logger.error(error, "Error sending to user session");
 			// If sending fails, add to the message queue
-			await createPendingMessage(userId, sessionId, message);
+			await createPendingMessage(userId, sessionId, type, payload);
 		}
 	} else {
-		await createPendingMessage(userId, sessionId, message);
+		await createPendingMessage(userId, sessionId, type, payload);
 	}
 };
 
@@ -132,7 +138,11 @@ wss.on("connection", (ws: any, req: any) => {
 								try {
 									const messages: Message[] = await getPendingMessagesBySession(sessionId);
 									for (const msg of messages) {
-										ws.send(msg.message);
+										const message = JSON.stringify({
+											type: msg.msg_type,
+											payload: msg.msg_payload
+										});
+										ws.send(message);
 										await updateMessageStatus(msg._id);
 									}
 								} catch (error) {}

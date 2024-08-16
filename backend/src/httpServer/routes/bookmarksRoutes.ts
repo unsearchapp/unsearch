@@ -44,9 +44,9 @@ router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 		const _id = await createBookmark(bookmarkInsert);
 
 		// send message to extension
+		const type = "BOOKMARKS_CREATE";
 		const payload = { _id, createDetails: { index, parentId, title, url } };
-		const message = JSON.stringify({ type: "BOOKMARKS_CREATE", payload });
-		sendMessageToUser(userId, sessionId, message);
+		sendMessageToUser(userId, sessionId, type, payload);
 
 		res.json({ data: true });
 	} catch (error) {
@@ -64,9 +64,10 @@ router.patch("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 
 		if (updatedRows > 0) {
 			// send message to extension
+			const type = "BOOKMARKS_UPDATE";
 			const payload = { id, changes: { title, url } };
-			const message = JSON.stringify({ type: "BOOKMARKS_UPDATE", payload });
-			sendMessageToUser(userId, sessionId, message);
+
+			sendMessageToUser(userId, sessionId, type, payload);
 		}
 
 		res.json({ data: updatedRows });
@@ -85,9 +86,10 @@ router.post("/bookmarks/move", requireAuth, async (req: Request, res: Response) 
 
 		if (updatedRows > 0) {
 			// send message to extension
+			const type = "BOOKMARKS_MOVE";
 			const payload = { id, destination: { index, parentId } };
-			const message = JSON.stringify({ type: "BOOKMARKS_MOVE", payload });
-			sendMessageToUser(userId, sessionId, message);
+
+			sendMessageToUser(userId, sessionId, type, payload);
 		}
 
 		res.json({ data: updatedRows });
@@ -104,9 +106,10 @@ router.delete("/bookmarks", requireAuth, async (req, res) => {
 
 		const rowsDeleted: number = await deleteBookmarkById(id, req.user!._id, sessionId);
 
-		// send message to extension
-		const message = JSON.stringify({ type: "BOOKMARKS_REMOVE", payload: { id } });
-		sendMessageToUser(req.user!._id, sessionId, message);
+		// Send message to extension
+		const type = "BOOKMARKS_REMOVE";
+		const payload = { id };
+		sendMessageToUser(req.user!._id, sessionId, type, payload);
 
 		res.json({ data: rowsDeleted });
 	} catch (error) {
