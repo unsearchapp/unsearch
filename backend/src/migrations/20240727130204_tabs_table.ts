@@ -1,6 +1,9 @@
 import type { Knex } from "knex";
+import { logger } from "../../src/utils/logger";
 
 export async function up(knex: Knex): Promise<void> {
+	logger.info(`Running migration ${__filename}`);
+
 	await knex.schema.createTable("Tabs", (table) => {
 		table.uuid("_id").defaultTo(knex.fn.uuid()).primary();
 		table.uuid("userId").notNullable();

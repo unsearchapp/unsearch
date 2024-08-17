@@ -1,6 +1,8 @@
 import type { Knex } from "knex";
+import { logger } from "../../src/utils/logger";
 
 export async function up(knex: Knex): Promise<void> {
+	logger.info(`Running migration ${__filename}`);
 	// Add new columns for msg_type and msg_payload without the notNullable constraint
 	await knex.schema.alterTable("Messages", (table) => {
 		table.string("msg_type");
