@@ -27,11 +27,11 @@ export const findUserByEmail = async (email: string): Promise<User | undefined> 
 	}
 };
 
-export const getUserById = async (id: number): Promise<User | undefined> => {
+export const getUserById = async (_id: string): Promise<User | undefined> => {
 	try {
 		const user: User | undefined = await knex("Users")
 			.select("_id", "email")
-			.where({ _id: id })
+			.where({ _id })
 			.first();
 		return user;
 	} catch (error) {
