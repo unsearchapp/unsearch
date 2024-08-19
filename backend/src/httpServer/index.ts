@@ -11,12 +11,14 @@ import sessionsRouter from "./routes/sessionRoutes";
 import authRouter from "./routes/authRoutes";
 import tabsRouter from "./routes/tabsRoutes";
 import messageRouter from "./routes/messagesRoutes";
+import customersRouter from "./routes/customersRoutes";
 import pgSession from "connect-pg-simple";
 import { pool } from "../db/db";
 import { logger } from "../utils/logger";
 
 const app = express();
 const port = process.env.HTTP_PORT;
+const isSelfHosted = process.env.SELF_HOSTED === "true";
 
 app.use(
 	cors({
@@ -26,7 +28,14 @@ app.use(
 );
 app.use(morgan("dev"));
 app.use("/packages", express.static("/usr/src/packages"));
-app.use(express.json());
+app.use((req, res, next) => {
+	if (req.originalUrl === "/api/webhook") {
+		next();
+	} else {
+		express.json()(req, res, next);
+	}
+});
+
 app.use(express.urlencoded({ extended: false }));
 
 const PgStore = pgSession(session);
@@ -55,6 +64,9 @@ app.use("/api", sessionsRouter);
 app.use("/api", authRouter);
 app.use("/api", tabsRouter);
 app.use("/api", messageRouter);
+if (!isSelfHosted) {
+	app.use("/api", customersRouter);
+}
 
 function setUpHttpServer() {
 	app.listen(port, () => {

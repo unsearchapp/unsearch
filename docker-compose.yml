@@ -43,6 +43,11 @@ services:
       - JWT_SECRET
       - LOG_LEVEL
       - WORD2VEC_URL
+      - WEBAPP_URL
+      - PRICE_ID
+      - STRIPE_PRIVATE_KEY
+      - STRIPE_SECRET
+      - SELF_HOSTED
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +60,7 @@ services:
     environment:
       - CLIENT_PORT
       - APP_URL
+      - VITE_SELF_HOSTED=${SELF_HOSTED}
     ports:
       - "${CLIENT_PORT}:${CLIENT_PORT}"
     volumes:

@@ -3,10 +3,13 @@ import React, { createContext, useEffect, ReactNode, useState } from "react";
 interface User {
 	_id: string;
 	email: string;
+	customerId: string;
+	isPaid: boolean;
 }
 
 export interface AuthContextInterface {
 	isAuthenticated: boolean;
+	isPaid: boolean;
 	user: User | null;
 	checkAuth: () => void;
 	login: (email: string, password: string) => Promise<User>;
@@ -18,6 +21,7 @@ export const AuthContext = createContext<AuthContextInterface | undefined>(undef
 
 export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [isPaid, setIsPaid] = useState<boolean>(false);
 	const [user, setUser] = useState<User | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -31,13 +35,16 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 				const data = await response.json();
 				setIsAuthenticated(true);
 				setUser(data.user);
+				setIsPaid(data.user.isPaid);
 			} else {
 				setIsAuthenticated(false);
 				setUser(null);
+				setIsPaid(false);
 			}
 		} catch (error) {
 			setIsAuthenticated(false);
 			setUser(null);
+			setIsPaid(false);
 		} finally {
 			setIsLoading(false);
 		}
@@ -59,6 +66,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 
 				setIsAuthenticated(true);
 				setUser(data.user);
+				setIsPaid(data.user.isPaid);
 				return data.user;
 			} else {
 				throw new Error("Login failed");
@@ -83,6 +91,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 				const data = await response.json();
 				setIsAuthenticated(true);
 				setUser(data.user);
+				setIsPaid(data.user.isPaid);
 				return data.user;
 			} else {
 				throw new Error("Registration failed");
@@ -102,6 +111,7 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 			if (response.ok) {
 				setIsAuthenticated(false);
 				setUser(null);
+				setIsPaid(false);
 			} else {
 				throw new Error("Logout failed");
 			}
@@ -116,7 +126,9 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 
 	return (
 		!isLoading && (
-			<AuthContext.Provider value={{ isAuthenticated, user, checkAuth, login, register, logout }}>
+			<AuthContext.Provider
+				value={{ isAuthenticated, user, isPaid, checkAuth, login, register, logout }}
+			>
 				{children}
 			</AuthContext.Provider>
 		)

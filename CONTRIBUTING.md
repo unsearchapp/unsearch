@@ -57,6 +57,11 @@ CLIENT_PORT=3000                     # The port of the React client
 LOG_LEVEL='info'                     # The log level of the backend, can be: trace, debug, info, warn, error and fatal
 APP_URL="http://backend:5000"        # The backend url
 WORD2VEC_URL="http://word2vec:5001"  # The url of the word embedding service
+WEBAPP_URL=http://localhost:3000     # Webapp url
+SELF_HOSTED=false                    # 'true' if app is being self hosted, to disable payments
+PRICE_ID=""                          # Stripe price id (optional)
+STRIPE_PRIVATE_KEY=""                # Stripe private key (optional)
+STRIPE_SECRET=""                     # Stripe webhook secret (optional)
 ```
 
 To enable semantic search it is necessary to download `GoogleNews-vectors-negative300.bin.gz` and store the file inside `word2vec/`. If the file is not present, the semantic search will default to an exact search. Link to [download from Kaggle](https://www.kaggle.com/datasets/leadbest/googlenewsvectorsnegative300/data).
