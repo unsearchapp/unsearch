@@ -8,6 +8,7 @@ import { Bookmarks } from "./pages/Bookmarks";
 import { Tabs } from "./pages/Tabs";
 import { Logs } from "./pages/Logs";
 import { Plans } from "./pages/Plans";
+import { NotFound } from "./pages/NotFound";
 import { useAuthContext } from "./hooks/useAuthContext";
 import ProtectedRoute from "./components/App/ProtectedRoute";
 
@@ -77,6 +78,8 @@ const App: React.FC = () => {
 					/>
 				)}
 
+				{/* 404 Route */}
+				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</BrowserRouter>
 	);
