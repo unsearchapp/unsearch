@@ -66,16 +66,13 @@ RUN pnpm install --no-link
 RUN pnpm --filter client build
 
 # Production stage
-FROM node:21.7 AS production
-
-# Install serve globally to serve the production build
-RUN npm install -g http-server
-
-# Set the working directory
-WORKDIR /usr/src/app
+FROM nginx:stable-alpine AS production
 
 # Copy only the necessary files from the build stage
-COPY --from=build /usr/src/app/client/dist ./dist
+COPY --from=build /usr/src/app/client/dist /usr/share/nginx/html
+
+# Copy your custom Nginx configuration file
+COPY client/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Set environment variable for port
 ENV CLIENT_PORT=3000
@@ -85,4 +82,4 @@ ENV CLIENT_PORT=${CLIENT_PORT}
 EXPOSE ${CLIENT_PORT}
 
 # Command to serve the app
-CMD http-server dist -p ${CLIENT_PORT}
+ENTRYPOINT ["nginx","-g","daemon off;"]
