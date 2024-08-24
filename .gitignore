@@ -3,3 +3,5 @@ dist/
 
 .env
 .pnpm-store
+
+__pycache__
