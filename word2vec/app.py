@@ -54,8 +54,10 @@ def similarity():
 
 
 if __name__ == '__main__':
-  # Ensure the environment is set to development
-  os.environ['FLASK_ENV'] = 'development'
-  os.environ['FLASK_DEBUG'] = '1'
+  port = os.environ.get("WORD2VEC_PORT")
 
-  app.run(debug=True, host='0.0.0.0', port=os.environ.get("WORD2VEC_PORT"))
+  if os.environ.get('FLASK_ENV') == 'development':
+    app.run(debug=True, host='0.0.0.0', port=port)
+  else:
+    app.run(host='0.0.0.0', port=port)
+

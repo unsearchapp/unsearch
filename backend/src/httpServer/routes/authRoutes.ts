@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createUser, User } from "../../db/usersModel";
 import passport from "passport";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import "../auth/passport-config";
 import { logger } from "../../utils/logger";
 

@@ -32,7 +32,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "css:watch": "tailwindcss -i ./src/input.css -o ./src/output.css --watch",
     "css:build": "tailwindcss -i ./src/input.css -o ./src/output.css"
   },

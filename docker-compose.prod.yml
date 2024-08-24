@@ -1,0 +1,70 @@
+services:
+  backend:
+    image: backend-image:latest
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: production
+    ports:
+      - "${WS_PORT}:${WS_PORT}"
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    environment:
+      - WS_PORT
+      - HTTP_PORT
+      - PGUSER
+      - PGHOST
+      - PGDATABASE
+      - PGPASSWORD
+      - PGPORT
+      - JWT_SECRET
+      - LOG_LEVEL
+      - WORD2VEC_URL
+      - WEBAPP_URL
+      - PRICE_ID
+      - STRIPE_PRIVATE_KEY
+      - STRIPE_SECRET
+      - SELF_HOSTED
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    image: node:20-slim
+    working_dir: /usr/src/app/backend
+    environment:
+      - PGUSER
+      - PGHOST
+      - PGDATABASE
+      - PGPASSWORD
+      - PGPORT
+    command: >
+      sh -c "npm install -g pnpm && 
+            pnpm install
+            pnpm dlx knex migrate:latest"
+    volumes:
+      - ./backend:/usr/src/app/backend
+
+  frontend:
+    image: frontend-image:latest
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: production
+    environment:
+      - CLIENT_PORT
+      - APP_URL
+      - VITE_SELF_HOSTED=${SELF_HOSTED}
+    ports:
+      - "${CLIENT_PORT}:${CLIENT_PORT}"
+    depends_on:
+      - backend
+
+  word2vec:
+    build:
+      context: ./word2vec
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - WORD2VEC_PORT
+    ports:
+      - "${WORD2VEC_PORT}:${WORD2VEC_PORT}"

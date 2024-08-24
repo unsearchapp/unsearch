@@ -2,7 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { findUserByEmail, getUserById, User } from "../../db/usersModel";
 import { logger } from "../../utils/logger";
-const bcrypt = require("bcrypt");
+import bcrypt from "bcryptjs";
 
 passport.use(
 	new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {

@@ -26,7 +26,11 @@ app.use(
 		credentials: true
 	})
 );
-app.use(morgan("dev"));
+
+if (process.env.NODE_ENV !== "production") {
+	app.use(morgan("dev"));
+}
+
 app.use("/packages", express.static("/usr/src/packages"));
 app.use((req, res, next) => {
 	if (req.originalUrl === "/api/webhook") {
