@@ -62,17 +62,41 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 			});
 
 			if (response.ok) {
-				const data = await response.json();
-
-				setIsAuthenticated(true);
-				setUser(data.user);
-				setIsPaid(data.user.isPaid);
-				return data.user;
+				const text = await response.text(); // Get response text first
+				try {
+					const data = text ? JSON.parse(text) : {}; // Parse JSON if not empty
+					setIsAuthenticated(true);
+					setUser(data.user);
+					setIsPaid(data.user.isPaid);
+					return data.user;
+				} catch (jsonError) {
+					// Handle JSON parsing error
+					throw new Error("Something went wrong, please try again later");
+				}
 			} else {
-				throw new Error("Login failed");
+				// Extract error message from the response if available
+				const text = await response.text(); // Get response text first
+				let errorMessage = "Something went wrong, please try again later";
+
+				// Handle errors for non-OK responses
+				try {
+					const errorData = text ? JSON.parse(text) : {};
+					if (errorData.message) {
+						errorMessage = errorData.message; // Preserve the original error message
+					}
+				} catch (jsonError) {
+					// If parsing fails, keep the default error message
+				}
+
+				throw new Error(errorMessage); // Throw with preserved or default error message
 			}
 		} catch (error) {
-			throw new Error("Login failed");
+			// Rethrow error with specific message
+			if (error instanceof Error) {
+				throw new Error(error.message || "Something went wrong, please try again later");
+			} else {
+				throw new Error("Something went wrong, please try again later");
+			}
 		}
 	};
 
@@ -88,16 +112,41 @@ export const AuthContextProvider: React.FC<{ children: ReactNode }> = ({ childre
 			});
 
 			if (response.ok) {
-				const data = await response.json();
-				setIsAuthenticated(true);
-				setUser(data.user);
-				setIsPaid(data.user.isPaid);
-				return data.user;
+				const text = await response.text(); // Get response text first
+				try {
+					const data = text ? JSON.parse(text) : {}; // Parse JSON if not empty
+					setIsAuthenticated(true);
+					setUser(data.user);
+					setIsPaid(data.user.isPaid);
+					return data.user;
+				} catch (jsonError) {
+					// Handle JSON parsing error
+					throw new Error("Something went wrong, please try again later");
+				}
 			} else {
-				throw new Error("Registration failed");
+				// Extract error message from the response if available
+				const text = await response.text(); // Get response text first
+				let errorMessage = "Something went wrong, please try again later";
+
+				// Handle errors for non-OK responses
+				try {
+					const errorData = text ? JSON.parse(text) : {};
+					if (errorData.message) {
+						errorMessage = errorData.message; // Preserve the original error message
+					}
+				} catch (jsonError) {
+					// If parsing fails, keep the default error message
+				}
+
+				throw new Error(errorMessage); // Throw with preserved or default error message
 			}
 		} catch (error) {
-			throw new Error("Registration failed");
+			// Rethrow error with specific message
+			if (error instanceof Error) {
+				throw new Error(error.message || "Something went wrong, please try again later");
+			} else {
+				throw new Error("Something went wrong, please try again later");
+			}
 		}
 	};
 

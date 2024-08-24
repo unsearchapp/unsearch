@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import { Button, Input, Label } from "ui";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import logo from "@packages/assets/images/unsearch.png";
 
 export const Register = () => {
 	const { register } = useAuthContext();
 	const [email, setEmail] = useState<string>("");
 	const [password, setPassword] = useState<string>("");
+	const [errorMessage, setErrorMessage] = useState<string>("");
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const fromExtension = urlParams.get("fromExtension");
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setErrorMessage("");
 
 		try {
 			const user = await register(email, password);
@@ -21,7 +24,11 @@ export const Register = () => {
 				window.postMessage({ type: "signupSuccess", user }, "*");
 			}
 		} catch (error) {
-			console.log(error);
+			if (error instanceof Error) {
+				setErrorMessage(error.message); // Display error message from server or generic message
+			} else {
+				setErrorMessage("Something went wrong, please try again later.");
+			}
 		}
 	}
 
@@ -60,6 +67,12 @@ export const Register = () => {
 								required
 							/>
 						</div>
+						{errorMessage && (
+							<span className="flex items-center gap-x-2 text-sm font-bold text-red-600">
+								<ExclamationTriangleIcon className="size-4" />
+								{errorMessage}
+							</span>
+						)}
 						<Button type="submit" className="w-full">
 							Signup
 						</Button>

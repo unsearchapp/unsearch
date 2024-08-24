@@ -10,12 +10,28 @@ export interface User {
 	updated_at: Date;
 }
 
+// Define a type for PostgreSQL errors with the code property
+interface PostgreSQLError extends Error {
+	code?: string; // PostgreSQL-specific error code
+}
+
 export const createUser = async (email: string, password: string): Promise<User> => {
 	try {
 		const [user]: User[] = await knex("Users").insert({ email, password }).returning("*");
 		return user;
 	} catch (error) {
-		throw error;
+		if (error instanceof Error) {
+			// Cast to PostgreSQLError to access the code property
+			const pgError = error as PostgreSQLError;
+			if (pgError.code === "23505") {
+				// Handle unique constraint violation error
+				throw new Error("Email already in use");
+			}
+			// Re-throw other errors
+			throw error;
+		}
+		// Handle unexpected errors that are not instances of Error
+		throw new Error("An unknown error occurred");
 	}
 };
 

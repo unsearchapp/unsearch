@@ -1,23 +1,33 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { findUserByEmail, getUserById, User } from "../../db/usersModel";
+import { logger } from "../../utils/logger";
 const bcrypt = require("bcrypt");
 
 passport.use(
 	new LocalStrategy({ usernameField: "email" }, async (email, password, done) => {
-		const user = await findUserByEmail(email);
+		try {
+			const user = await findUserByEmail(email);
 
-		if (!user) {
-			return done(null, false, { message: "Incorrect email or password" });
-		}
-
-		bcrypt.compare(password, user.password, (err: any, result: boolean | null) => {
-			if (!result) {
+			if (!user) {
 				return done(null, false, { message: "Incorrect email or password" });
 			}
-		});
 
-		return done(null, user);
+			bcrypt.compare(password, user.password, (err: any, result: boolean | null) => {
+				if (err) {
+					logger.error(err, "bcrypt error");
+					return done(null, false, { message: "Something went wrong, please try again later" });
+				}
+				if (!result) {
+					return done(null, false, { message: "Incorrect email or password" });
+				}
+
+				return done(null, user);
+			});
+		} catch (error) {
+			logger.error(error, "authentication error in LocalStrategy");
+			return done(null, false, { message: "Something went wrong, please try again later" });
+		}
 	})
 );
 
