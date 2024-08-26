@@ -18,11 +18,27 @@ import { logger } from "../utils/logger";
 
 const app = express();
 const port = process.env.HTTP_PORT;
+const baseUrl = process.env.BASE_URL;
 const isSelfHosted = process.env.SELF_HOSTED === "true";
 
 app.use(
 	cors({
-		origin: `http://localhost:${process.env.HTTP_PORT}`,
+		origin: (origin, callback) => {
+			// Check if the origin is allowed
+			if (process.env.NODE_ENV === "development") {
+				callback(null, `http://localhost:${port}`);
+			} else if (process.env.NODE_ENV === "production") {
+				// In production, check if BASE_URL is set
+				if (baseUrl) {
+					callback(null, `${baseUrl}:${port}`);
+				} else {
+					// If no BASE_URL is set, don't allow any origin
+					callback(null, false);
+				}
+			} else {
+				callback(new Error("Not allowed by CORS"));
+			}
+		},
 		credentials: true
 	})
 );

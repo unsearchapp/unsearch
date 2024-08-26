@@ -8,7 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 ENV WORD2VEC_PORT=5001
-ENV WORD2VEC_PORT=${WORD2VEC_PORT}
 
 EXPOSE ${WORD2VEC_PORT}
 
@@ -33,7 +32,6 @@ COPY . .
 
 # Expose the port for production
 ENV WORD2VEC_PORT=5001
-ENV WORD2VEC_PORT=${WORD2VEC_PORT}
 
 EXPOSE ${WORD2VEC_PORT}
 

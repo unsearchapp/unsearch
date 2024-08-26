@@ -6,11 +6,9 @@ services:
       dockerfile: backend/Dockerfile
       target: production
     ports:
-      - "${WS_PORT}:${WS_PORT}"
-      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "1234:1234"
+      - "5000:5000"
     environment:
-      - WS_PORT
-      - HTTP_PORT
       - PGUSER
       - PGHOST
       - PGDATABASE
@@ -51,11 +49,10 @@ services:
       dockerfile: client/Dockerfile
       target: production
     environment:
-      - CLIENT_PORT
       - APP_URL
       - VITE_SELF_HOSTED=${SELF_HOSTED}
     ports:
-      - "${CLIENT_PORT}:${CLIENT_PORT}"
+      - "3000:3000"
     depends_on:
       - backend
 
@@ -64,7 +61,14 @@ services:
       context: ./word2vec
       dockerfile: Dockerfile
       target: production
-    environment:
-      - WORD2VEC_PORT
     ports:
-      - "${WORD2VEC_PORT}:${WORD2VEC_PORT}"
+      - "5001:5001"
+
+  nginx-proxy:
+    image: nginx:latest
+    ports:
+      - "80:80" # HTTP
+      - "443:443" # HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro

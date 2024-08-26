@@ -5,3 +5,5 @@ dist/
 .pnpm-store
 
 __pycache__
+
+nginx.conf

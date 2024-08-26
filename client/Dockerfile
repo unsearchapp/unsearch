@@ -26,8 +26,7 @@ COPY client ./client
 RUN pnpm install --no-link
 
 # Default ports (overrided by docker-compose.yml)
-ARG CLIENT_PORT=3000
-ENV CLIENT_PORT=${CLIENT_PORT}
+ENV CLIENT_PORT=3000
 
 # Expose the port the app runs on
 EXPOSE ${CLIENT_PORT}
@@ -76,7 +75,6 @@ COPY client/nginx/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Set environment variable for port
 ENV CLIENT_PORT=3000
-ENV CLIENT_PORT=${CLIENT_PORT}
 
 # Expose the port the app runs on
 EXPOSE ${CLIENT_PORT}

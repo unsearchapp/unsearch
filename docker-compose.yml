@@ -23,15 +23,13 @@ services:
       dockerfile: backend/Dockerfile
       target: development
     ports:
-      - "${WS_PORT}:${WS_PORT}"
-      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "1234:1234"
+      - "5000:5000"
     volumes:
       - ./backend:/usr/src/app/backend
       - /usr/src/app/backend/node_modules
       - ./packages:/usr/src/app/packages
     environment:
-      - WS_PORT
-      - HTTP_PORT
       - PGUSER
       - PGHOST
       - PGDATABASE
@@ -56,11 +54,10 @@ services:
       dockerfile: client/Dockerfile
       target: development
     environment:
-      - CLIENT_PORT
       - APP_URL
       - VITE_SELF_HOSTED=${SELF_HOSTED}
     ports:
-      - "${CLIENT_PORT}:${CLIENT_PORT}"
+      - "3000:3000"
     volumes:
       - ./client:/usr/src/app/client
       - /usr/src/app/client/node_modules
@@ -72,12 +69,10 @@ services:
       context: ./word2vec
       dockerfile: Dockerfile
       target: development
-    environment:
-      - WORD2VEC_PORT
     volumes:
       - ./word2vec:/app
     ports:
-      - "${WORD2VEC_PORT}:${WORD2VEC_PORT}"
+      - "5001:5001"
     depends_on:
       - postgres
 

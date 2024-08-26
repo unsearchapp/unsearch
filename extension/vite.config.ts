@@ -4,9 +4,15 @@ import { resolve } from "path";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // Define the environment variable for the browser
-const browser = process.env.VITE_BROWSER || "firefox";
+const browser = process.env.VITE_BROWSER;
+const mode = process.env.VITE_MODE || "production"; // "development", "production"
+const webappUrl = process.env.VITE_WEBAPP_URL;
+
 const manifestSrc = path.resolve(__dirname, `manifests/manifest-${browser}.json`);
 const manifestDest = path.resolve(__dirname, "public/manifest.json");
 
@@ -47,7 +53,25 @@ export default defineConfig({
 				if (!fs.existsSync(manifestSrc)) {
 					throw new Error(`Manifest file ${manifestSrc} does not exist.`);
 				}
-				fs.copyFileSync(manifestSrc, manifestDest);
+
+				// Read and parse the manifest
+				const manifestContent = JSON.parse(fs.readFileSync(manifestSrc, "utf-8"));
+
+				// Update the manifest based on environment variables
+				manifestContent.host_permissions = [webappUrl];
+				if (mode === "development") {
+					manifestContent.content_security_policy = {
+						extension_pages:
+							"script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:5000 ws://localhost:1234"
+					};
+				} else {
+					// Remove CSP in production (its only necessary when the websocket server doesn't have SSL)
+					delete manifestContent.content_security_policy;
+				}
+
+				// Write the updated manifest to the destination
+				fs.writeFileSync(manifestDest, JSON.stringify(manifestContent, null, 2));
+
 				console.log(`Copied ${manifestSrc} to ${manifestDest}`);
 			}
 		},

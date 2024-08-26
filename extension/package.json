@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"VITE_BROWSER=firefox vite build --watch\" \"web-ext run -f --source-dir=./dist/firefox/ --watch-files=dist/firefox/* --verbose\"",
+    "dev": "concurrently \"VITE_BROWSER=firefox VITE_MODE=development vite build --watch\" \"web-ext run -f --source-dir=./dist/firefox/ --watch-files=dist/firefox/* --verbose\"",
     "build:chrome": "tsc --noEmit && VITE_BROWSER=chrome vite build",
     "build:firefox": "tsc --noEmit && VITE_BROWSER=firefox vite build",
     "build:edge": "tsc --noEmit && VITE_BROWSER=edge vite build",
@@ -14,6 +14,7 @@
     "@radix-ui/react-icons": "^1.3.0",
     "@types/webextension-polyfill": "^0.10.7",
     "clsx": "^2.1.1",
+    "dotenv": "^16.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ui": "workspace:*",

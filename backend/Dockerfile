@@ -22,11 +22,8 @@ COPY backend/ ./backend
 
 # Default environment variables
 ENV NODE_ENV=development
-ARG HTTP_PORT=5000
-ARG WS_PORT=1234
-
-ENV HTTP_PORT=${HTTP_PORT}
-ENV WS_PORT=${WS_PORT}
+ENV HTTP_PORT=5000
+ENV WS_PORT=1234
 
 # Expose the ports
 EXPOSE ${HTTP_PORT}
@@ -73,11 +70,8 @@ COPY --from=build /usr/src/app/package.json ./
 
 # Set environment variables for production
 ENV NODE_ENV=production
-ARG HTTP_PORT=5000
-ARG WS_PORT=1234
-
-ENV HTTP_PORT=${HTTP_PORT}
-ENV WS_PORT=${WS_PORT}
+ENV HTTP_PORT=5000
+ENV WS_PORT=1234
 
 # Expose the ports
 EXPOSE ${HTTP_PORT}
