@@ -35,6 +35,7 @@ services:
       - PGDATABASE
       - PGPASSWORD
       - PGPORT
+      - PG_SECRET_KEY
       - JWT_SECRET
       - LOG_LEVEL
       - WORD2VEC_URL

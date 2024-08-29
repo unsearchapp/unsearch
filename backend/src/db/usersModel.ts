@@ -1,4 +1,4 @@
-import knex from "./db";
+import { knex } from "./db";
 
 export interface User {
 	_id: string;

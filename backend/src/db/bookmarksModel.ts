@@ -1,5 +1,6 @@
-import knex from "./db";
+import { knex, encryptionKey } from "./db";
 import { sendMessageToUser } from "../wsServer/wsServer";
+import { Knex } from "knex";
 
 export interface Bookmark {
 	_id: string;
@@ -36,7 +37,16 @@ interface insertedBookmark {
 
 export const createBookmark = async (bookmark: BookmarkInsert): Promise<string> => {
 	try {
-		const [{ _id }]: insertedBookmark[] = await knex("Bookmarks").insert(bookmark).returning("_id");
+		const encryptedBookmark = {
+			...bookmark,
+			title: bookmark.title
+				? knex.raw("pgp_sym_encrypt(?, ?)", [bookmark.title, encryptionKey])
+				: null,
+			url: bookmark.url ? knex.raw("pgp_sym_encrypt(?, ?)", [bookmark.url, encryptionKey]) : null
+		};
+		const [{ _id }]: insertedBookmark[] = await knex("Bookmarks")
+			.insert(encryptedBookmark)
+			.returning("_id");
 		return _id;
 	} catch (error) {
 		throw error;
@@ -45,19 +55,20 @@ export const createBookmark = async (bookmark: BookmarkInsert): Promise<string> 
 
 export const getBookmarksByUser = async (userId: string): Promise<PublicBookmark[]> => {
 	try {
-		const columns: string[] = [
-			"_id",
-			"sessionId",
-			"dateAdded",
-			"dateGroupModified",
-			"dateLastUsed",
-			"id",
-			"index",
-			"parentId",
-			"title",
-			"url"
-		];
-		const bookmarks: PublicBookmark[] = await knex("Bookmarks").select(columns).where({ userId });
+		const bookmarks: PublicBookmark[] = await knex("Bookmarks")
+			.select([
+				"_id",
+				"sessionId",
+				"dateAdded",
+				"dateGroupModified",
+				"dateLastUsed",
+				"id",
+				"index",
+				"parentId",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) AS title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) AS url", [encryptionKey])
+			])
+			.where({ userId });
 		return bookmarks;
 	} catch (error) {
 		throw error;
@@ -69,20 +80,19 @@ export const getBookmarksBySession = async (
 	sessionId: string
 ): Promise<PublicBookmark[]> => {
 	try {
-		const columns: string[] = [
-			"_id",
-			"sessionId",
-			"dateAdded",
-			"dateGroupModified",
-			"dateLastUsed",
-			"id",
-			"index",
-			"parentId",
-			"title",
-			"url"
-		];
 		const bookmarks: PublicBookmark[] = await knex("Bookmarks")
-			.select(columns)
+			.select([
+				"_id",
+				"sessionId",
+				"dateAdded",
+				"dateGroupModified",
+				"dateLastUsed",
+				"id",
+				"index",
+				"parentId",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) AS title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) AS url", [encryptionKey])
+			])
 			.where({ userId, sessionId });
 		return bookmarks;
 	} catch (error) {
@@ -91,8 +101,8 @@ export const getBookmarksBySession = async (
 };
 
 interface UpdateFields {
-	title?: string;
-	url?: string;
+	title?: Knex.Raw;
+	url?: Knex.Raw;
 }
 
 // Uses bookmark id and sessionId to identify a bookmark, used for incoming messages from extensions
@@ -106,17 +116,17 @@ export const updateBookmark = async (
 	try {
 		const updateData: UpdateFields = {};
 		if (title !== undefined) {
-			updateData.title = title;
+			updateData.title = knex.raw("pgp_sym_encrypt(?, ?)", [title, encryptionKey]);
 		}
 		if (url !== undefined) {
-			updateData.url = url;
+			updateData.url = knex.raw("pgp_sym_encrypt(?, ?)", [url, encryptionKey]);
 		}
 
 		// Ensure there's at least one field to update
 		if (Object.keys(updateData).length > 0) {
 			const rowsUpdated: number = await knex("Bookmarks")
 				.where({ id, userId, sessionId })
-				.update({ title, url });
+				.update(updateData);
 			return rowsUpdated;
 		}
 		return 0;
@@ -135,10 +145,10 @@ export const updateBookmarkById = async (
 	try {
 		const updateData: UpdateFields = {};
 		if (title !== undefined) {
-			updateData.title = title;
+			updateData.title = knex.raw("pgp_sym_encrypt(?, ?)", [title, encryptionKey]);
 		}
 		if (url !== undefined) {
-			updateData.url = url;
+			updateData.url = knex.raw("pgp_sym_encrypt(?, ?)", [url, encryptionKey]);
 		}
 
 		let rowsUpdated = 0;

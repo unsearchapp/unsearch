@@ -1,4 +1,4 @@
-import knex from "./db";
+import { knex, encryptionKey } from "./db";
 import { Knex } from "knex";
 
 export interface HistoryItem {
@@ -26,16 +26,30 @@ export const getHistoryItemsByUser = async (
 ): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
 		const baseQuery = knex("HistoryItems")
-			.select()
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId })
 			.modify(function (builder: Knex.QueryBuilder) {
 				if (sessionsIds.length > 0) {
 					builder.whereIn("sessionId", sessionsIds);
 				}
 				if (query) {
-					// builder.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
+					// Update the search to decrypt and search on the decrypted fields
 					builder.where((qb: Knex.QueryBuilder) => {
-						qb.whereILike("title", `%${query}%`).orWhereILike("url", `%${query}%`);
+						qb.where(
+							knex.raw("pgp_sym_decrypt(title::bytea, ?) ILIKE ?", [encryptionKey, `%${query}%`])
+						).orWhere(
+							knex.raw("pgp_sym_decrypt(url::bytea, ?) ILIKE ?", [encryptionKey, `%${query}%`])
+						);
 					});
 				}
 			});
@@ -43,7 +57,7 @@ export const getHistoryItemsByUser = async (
 		// Query to fetch paginated items
 		const itemsQuery = baseQuery
 			.clone() // Clone the base query to avoid modifying it
-			.select()
+			// .select()
 			.orderBy("lastVisitTime", "desc")
 			.limit(pageSize)
 			.offset(offset);
@@ -51,6 +65,7 @@ export const getHistoryItemsByUser = async (
 		// Query to fetch total number of items
 		const countQuery = baseQuery
 			.clone() // Clone the base query again
+			.clearSelect()
 			.count({ total: "*" })
 			.first(); // .first() to get a single object with the count
 
@@ -72,14 +87,19 @@ export const getHistoryItemsByUser = async (
 
 export const getUserHistoryForExport = async (userId: string): Promise<PublicHistoryItem[]> => {
 	try {
-		const columns: string[] = ["id", "url", "title", "lastVisitTime", "visitCount", "typedCount"];
-
 		const knexQuery = knex("HistoryItems")
-			.select(columns)
+			.select(
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId })
 			.orderBy("lastVisitTime", "desc");
 
-		const historyItems: HistoryItem[] = await knexQuery;
+		const historyItems: PublicHistoryItem[] = await knexQuery;
 		return historyItems;
 	} catch (error) {
 		throw error;
@@ -95,7 +115,17 @@ export const fuzzyHistoryItemsSearch = async (
 ): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
 		const baseQuery = knex("HistoryItems")
-			.select()
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId })
 			.modify(function (builder: Knex.QueryBuilder) {
 				if (sessionsIds.length > 0) {
@@ -103,31 +133,33 @@ export const fuzzyHistoryItemsSearch = async (
 				}
 			})
 			.where(function () {
-				this.whereRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) > ?", [
-					query,
-					query,
-					0.3
-				]).orWhere(function () {
-					this.whereRaw("word_similarity(title, ?) = 0", [query]).orWhereRaw(
-						"word_similarity(url, ?) = 0",
-						[query]
-					);
+				this.whereRaw(
+					"GREATEST(word_similarity(pgp_sym_decrypt(title::bytea, ?), ?), word_similarity(pgp_sym_decrypt(url::bytea, ?), ?)) > ?",
+					[encryptionKey, query, encryptionKey, query, 0.3]
+				).orWhere(function () {
+					this.whereRaw("word_similarity(pgp_sym_decrypt(title::bytea, ?), ?) = 0", [
+						encryptionKey,
+						query
+					]).orWhereRaw("word_similarity(pgp_sym_decrypt(url::bytea, ?), ?) = 0", [
+						encryptionKey,
+						query
+					]);
 				});
 			});
 
 		// Query to fetch paginated items
 		const itemsQuery = baseQuery
 			.clone()
-			.orderByRaw("GREATEST(word_similarity(title, ?), word_similarity(url, ?)) DESC", [
-				query,
-				query
-			])
+			.orderByRaw(
+				"GREATEST(word_similarity(pgp_sym_decrypt(title::bytea, ?), ?), word_similarity(pgp_sym_decrypt(url::bytea, ?), ?)) DESC",
+				[encryptionKey, query, encryptionKey, query]
+			)
 			.orderBy("lastVisitTime", "desc")
 			.limit(pageSize)
 			.offset(offset);
 
 		// Query to fetch total number of items
-		const countQuery = baseQuery.clone().count({ total: "*" }).first(); // .first() to get a single object with the count
+		const countQuery = baseQuery.clone().clearSelect().clear("order").count({ total: "*" }).first(); // .first() to get a single object with the count
 
 		// Execute both queries in parallel
 		const [items, totalResult] = await Promise.all([itemsQuery, countQuery]);
@@ -154,7 +186,17 @@ export const semanticHistoryItemsSearch = async (
 ): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
 		const baseQuery = knex("HistoryItems")
-			.select()
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId })
 			.modify((builder: Knex.QueryBuilder) => {
 				if (sessionsIds.length > 0) {
@@ -163,7 +205,9 @@ export const semanticHistoryItemsSearch = async (
 			})
 			.andWhere((builder) => {
 				wordsWithSimilarities.forEach((_, word) => {
-					builder.orWhere("title", "like", `%${word}%`).orWhere("url", "like", `%${word}%`);
+					builder
+						.orWhereRaw("pgp_sym_decrypt(title::bytea, ?) ILIKE ?", [encryptionKey, `%${word}%`])
+						.orWhereRaw("pgp_sym_decrypt(url::bytea, ?) ILIKE ?", [encryptionKey, `%${word}%`]);
 				});
 			});
 
@@ -175,7 +219,7 @@ export const semanticHistoryItemsSearch = async (
 			.offset(offset);
 
 		// Query to fetch total number of items
-		const countQuery = baseQuery.clone().count({ total: "*" }).first(); // .first() to get a single object with the count
+		const countQuery = baseQuery.clone().clearSelect().clear("order").count({ total: "*" }).first(); // to get a single object with the count
 
 		// Execute both queries in parallel
 		const [items, totalResult] = await Promise.all([itemsQuery, countQuery]);
@@ -183,10 +227,22 @@ export const semanticHistoryItemsSearch = async (
 		// Extract the total count from the result
 		const totalItems = totalResult?.total ? parseInt(totalResult.total.toString(), 10) : 0;
 
-		// Calculate similarity and rank results
+		// Calculate similarity
 		const results = (items as HistoryItem[]).map((item) => {
-			const titleSimilarity = item.title ? wordsWithSimilarities.get(item.title) || 0 : 0;
-			const urlSimilarity = item.url ? wordsWithSimilarities.get(item.url) || 0 : 0;
+			const titleSimilarity = item.title
+				? Array.from(wordsWithSimilarities.entries()).reduce((acc, [word, similarity]) => {
+						if (item.title!.includes(word)) acc += similarity;
+						return acc;
+					}, 0)
+				: 0;
+
+			const urlSimilarity = item.url
+				? Array.from(wordsWithSimilarities.entries()).reduce((acc, [word, similarity]) => {
+						if (item.url!.includes(word)) acc += similarity;
+						return acc;
+					}, 0)
+				: 0;
+
 			const combinedSimilarity = (titleSimilarity + urlSimilarity) / 2;
 
 			return { ...item, similarity: combinedSimilarity };
@@ -211,7 +267,17 @@ export const getHistoryItemsBySession = async (
 ): Promise<HistoryItem[]> => {
 	try {
 		const historyItems: HistoryItem[] = await knex("HistoryItems")
-			.select()
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId, sessionId });
 		return historyItems;
 	} catch (error) {
@@ -221,7 +287,12 @@ export const getHistoryItemsBySession = async (
 
 export const createHistoryItems = async (historyItems: HistoryItemInsert[]) => {
 	try {
-		await knex("HistoryItems").insert(historyItems);
+		const encryptedHistoryItems = historyItems.map((item) => ({
+			...item,
+			title: item.title ? knex.raw("pgp_sym_encrypt(?, ?)", [item.title, encryptionKey]) : null,
+			url: item.url ? knex.raw("pgp_sym_encrypt(?, ?)", [item.url, encryptionKey]) : null
+		}));
+		await knex("HistoryItems").insert(encryptedHistoryItems);
 	} catch (error) {
 		throw error;
 	}
@@ -253,7 +324,7 @@ export const deleteHistoryItems = async (
 			itemsToDelete = await transaction("HistoryItems")
 				.where({ userId })
 				.whereIn("_id", ids)
-				.select("sessionId", "url");
+				.select("sessionId", knex.raw("pgp_sym_decrypt(url::bytea, ?) AS url", [encryptionKey]));
 
 			deletedRows = await transaction("HistoryItems").where({ userId }).whereIn("_id", ids).del();
 		}
@@ -272,9 +343,14 @@ export const deleteHistoryUrls = async (
 	urls: string[]
 ): Promise<number> => {
 	try {
+		// Encrypt each URL in the 'urls' array using the encryption key
+		const encryptedUrls = urls.map((url) =>
+			knex.raw("pgp_sym_encrypt(?, ?)", [url, encryptionKey])
+		);
+
 		const deletedRows: number = await knex("HistoryItems")
 			.where({ userId, sessionId })
-			.whereIn("url", urls)
+			.whereIn("url", encryptedUrls)
 			.del();
 		return deletedRows;
 	} catch (error) {

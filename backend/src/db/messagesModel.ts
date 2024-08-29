@@ -1,4 +1,4 @@
-import knex from "./db";
+import { knex } from "./db";
 
 export interface Message {
 	_id: string;
