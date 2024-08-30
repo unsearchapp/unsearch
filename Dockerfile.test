@@ -15,14 +15,13 @@ RUN npm install -g pnpm
 # Set working directory
 WORKDIR /app
 
+# Copy the entire project
+COPY . .
+
 # Install dependencies
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 RUN pnpm install
 
 RUN pnpm exec playwright install --with-deps chromium
-
-# Copy the entire project
-COPY . .
 
 # Build the extension
 RUN VITE_WEBAPP_URL=http://frontend:3000 pnpm --filter extension build
