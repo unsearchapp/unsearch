@@ -33,17 +33,17 @@ jobs:
         
       - name: Start Docker Compose services
         run: |
-          docker-compose -f docker-compose.test.yml up -d postgres backend frontend
+          docker compose -f docker-compose.test.yml up -d postgres backend frontend
 
       - name: Wait for services to be healthy
         run: |
-          until docker-compose -f docker-compose.test.yml ps | grep "healthy"; do sleep 5; done
+          until docker compose -f docker-compose.test.yml ps | grep "healthy"; do sleep 5; done
 
       - name: Run E2E Tests
         run: |
-          docker-compose -f docker-compose.test.yml run --rm playwright
+          docker compose -f docker-compose.test.yml run --rm playwright
 
       - name: Tear down Docker Compose
         if: always()
         run: |
-          docker-compose -f docker-compose.test.yml down
+          docker compose -f docker-compose.test.yml down
