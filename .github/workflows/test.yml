@@ -1,0 +1,49 @@
+name: Run E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Create root .env file
+        run: |
+          echo "PGUSER=myuser" >> .env
+          echo "PGHOST=postgres" >> .env
+          echo "PGDATABASE=mydb" >> .env
+          echo "PGPASSWORD=mypassword" >> .env
+          echo "PGPORT=5432" >> .env
+          echo "PG_SECRET_KEY=supersecret" >> .env
+          echo "JWT_SECRET=supersecret" >> .env
+          echo "LOG_LEVEL=info" >> .env
+          echo "APP_URL=http://backend:5000" >> .env
+          echo "WORD2VEC_URL=http://word2vec:5001" >> .env
+          echo "WEBAPP_URL=http://localhost:3000" >> .env
+          echo "SELF_HOSTED=false" >> .env
+
+      - name: Create extension/.env file
+        run: |
+          echo "VITE_WEBAPP_URL=http://localhost:3000" >> extension/.env
+          echo "VITE_BACKEND_URL=http://localhost:5000" >> extension/.env
+          echo "VITE_WS_URL=ws://localhost:1234" >> extension/.env
+        
+      - name: Start Docker Compose services
+        run: |
+          docker-compose -f docker-compose.test.yml up -d postgres backend frontend
+
+      - name: Wait for services to be healthy
+        run: |
+          until docker-compose -f docker-compose.test.yml ps | grep "healthy"; do sleep 5; done
+
+      - name: Run E2E Tests
+        run: |
+          docker-compose -f docker-compose.test.yml run --rm playwright
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: |
+          docker-compose -f docker-compose.test.yml down
