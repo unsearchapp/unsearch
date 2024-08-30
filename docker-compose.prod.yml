@@ -36,6 +36,7 @@ services:
       - PGDATABASE
       - PGPASSWORD
       - PGPORT
+      - PG_SECRET_KEY
     command: >
       sh -c "npm install -g pnpm && 
             pnpm install
