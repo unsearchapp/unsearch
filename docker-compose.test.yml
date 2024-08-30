@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+    ports:
+      - "${PGPORT}:${PGPORT}"
+
+  backend:
+    image: backend-image:latest
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: development
+    ports:
+      - "1234:1234"
+      - "5000:5000"
+    volumes:
+      - ./backend:/usr/src/app/backend
+      - /usr/src/app/backend/node_modules
+      - ./packages:/usr/src/app/packages
+    environment:
+      - PGUSER
+      - PGHOST
+      - PGDATABASE
+      - PGPASSWORD
+      - PGPORT
+      - PG_SECRET_KEY
+      - JWT_SECRET
+      - LOG_LEVEL
+      - WORD2VEC_URL
+      - WEBAPP_URL
+      - PRICE_ID
+      - STRIPE_PRIVATE_KEY
+      - STRIPE_SECRET
+      - SELF_HOSTED
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  frontend:
+    image: frontend-image:latest
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      target: development
+    environment:
+      - APP_URL
+      - VITE_SELF_HOSTED=${SELF_HOSTED}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./client:/usr/src/app/client
+      - /usr/src/app/client/node_modules
+      - /usr/src/app/packages/node_modules
+      - ./packages:/usr/src/app/packages
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - PGUSER
+      - PGHOST
+      - PGDATABASE
+      - PGPASSWORD
+      - PGPORT
+      - PG_SECRET_KEY
+    volumes:
+      - ./screenshots:/app/screenshots
+    depends_on:
+      frontend:
+        condition: service_healthy

@@ -13,7 +13,7 @@ function App() {
 		const getUser = async () => {
 			const result = await browser.storage.local.get("user");
 			const user = result.user || {};
-			setEmail(user.email || {});
+			setEmail(user.email || "");
 		};
 
 		const checkAuthStatus = async () => {
@@ -21,7 +21,7 @@ function App() {
 
 			const isLoggedIn = result.isLoggedIn || false;
 			if (isLoggedIn) {
-				getUser();
+				await getUser();
 			}
 			setView(isLoggedIn ? "home" : "welcome");
 		};

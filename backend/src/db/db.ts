@@ -1,5 +1,6 @@
 import Knex from "knex";
 import { Pool } from "pg";
+import path from "path";
 
 // Encryption key
 export const encryptionKey = process.env.PG_SECRET_KEY;
@@ -31,5 +32,8 @@ export const knex = Knex({
 	pool: {
 		min: 2,
 		max: 10
+	},
+	migrations: {
+		directory: path.resolve(__dirname, "../migrations") // Adjust path to your migrations directory
 	}
 });

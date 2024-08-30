@@ -1,0 +1,31 @@
+# Use the same base image as your main service
+FROM node:21.7-slim
+
+# Install necessary tools
+RUN apt-get update && apt-get install -y \
+    xvfb \
+    x11-utils \
+    libxi-dev \
+    libgconf-2-4 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+RUN pnpm install
+
+RUN pnpm exec playwright install --with-deps chromium
+
+# Copy the entire project
+COPY . .
+
+# Build the extension
+RUN VITE_WEBAPP_URL=http://frontend:3000 pnpm --filter extension build
+
+# Default command to run tests
+CMD ["sh", "-c", "xvfb-run -a -e /dev/stdout pnpm playwright test"]

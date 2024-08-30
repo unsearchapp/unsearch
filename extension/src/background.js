@@ -31,7 +31,7 @@ setInterval(checkAuth, 5000);
 // Listen for messages from content script
 browser.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (message.type === "signupSuccess") {
-		browser.storage.local.set({ isLoggedIn: true }).then(() => {
+		browser.storage.local.set({ isLoggedIn: true, user: message.user }).then(() => {
 			checkAndRecoverUID();
 		});
 	}

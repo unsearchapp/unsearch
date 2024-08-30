@@ -36,6 +36,8 @@ router.post("/logout", (req, res, next) => {
 		if (err) {
 			return next(err);
 		}
+		// Send a response back to the client
+		return res.status(200).send({ message: "Logged out" });
 	});
 });
 

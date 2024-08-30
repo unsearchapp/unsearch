@@ -88,6 +88,10 @@ if (!isSelfHosted) {
 	app.use("/api", customersRouter);
 }
 
+app.use("/ping", (req, res) => {
+	res.send("pong");
+});
+
 function setUpHttpServer() {
 	app.listen(port, () => {
 		logger.info(`Server is running on port ${port}`);
