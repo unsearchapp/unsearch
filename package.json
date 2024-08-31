@@ -14,7 +14,7 @@
     "start:backend": "pnpm --filter backend start",
     "format": "prettier --write .",
     "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "test": "bash ./test.sh",
     "start": "pnpm -r start"
   },
   "devDependencies": {
