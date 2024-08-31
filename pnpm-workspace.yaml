@@ -4,3 +4,4 @@ packages:
   - "client"
   - "landing"
   - "backend"
+  - "docs"
