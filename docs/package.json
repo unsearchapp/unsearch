@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "vocs dev",
     "build": "vocs build",
-    "preview": "vocs preview"
+    "preview": "vocs preview",
+    "start": "serve -s docs/dist -l tcp://0.0.0.0:$PORT -n"
   },
   "dependencies": {
     "@types/react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "serve": "^14.2.3",
     "typescript": "latest",
     "vocs": "latest"
   }
