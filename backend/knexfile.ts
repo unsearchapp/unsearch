@@ -1,6 +1,12 @@
-import type { Knex } from "knex";
+import { Knex } from "knex";
 
-const config: { [key: string]: Knex.Config } = {
+interface KnexConfig {
+	[key: string]: Knex.Config;
+}
+
+let connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+
+const config: KnexConfig = {
 	development: {
 		client: "pg",
 		connection: {
@@ -8,13 +14,29 @@ const config: { [key: string]: Knex.Config } = {
 			user: process.env.PGUSER,
 			password: process.env.PGPASSWORD,
 			database: process.env.PGDATABASE,
-			port: parseInt(process.env.PGPORT!)
+			port: Number(process.env.PGPORT)
 		},
 		migrations: {
 			directory: "./src/migrations",
 			extension: "ts"
 		}
+	},
+	production: {
+		client: "postgresql",
+		connection: {
+			connectionString: connectionString,
+			ssl: {
+				rejectUnauthorized: false
+			}
+		},
+		migrations: {
+			directory: "./dist/migrations",
+			extension: "js"
+		}
 	}
 };
 
-module.exports = config;
+const env: "development" | "production" =
+	(process.env.KNEX_ENV as "development" | "production") || "development";
+
+module.exports = config[env];

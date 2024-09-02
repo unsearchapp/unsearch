@@ -39,8 +39,8 @@ services:
       - PG_SECRET_KEY
     command: >
       sh -c "npm install -g pnpm && 
-            pnpm install
-            pnpm dlx knex migrate:latest"
+            pnpm install && 
+            KNEX_ENV=production pnpm dlx knex migrate:latest"
     volumes:
       - ./backend:/usr/src/app/backend
 

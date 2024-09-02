@@ -6,26 +6,29 @@ import path from "path";
 export const encryptionKey = process.env.PG_SECRET_KEY;
 const isProduction = process.env.NODE_ENV === "production";
 
+let connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+
+if (isProduction) {
+	connectionString += "?sslmode=require";
+}
+
 // Used for auth sessions
 export const pool = new Pool({
-	user: process.env.PGUSER,
-	host: process.env.PGHOST,
-	database: process.env.PGDATABASE,
-	password: process.env.PGPASSWORD,
-	port: parseInt(process.env.PGPORT!)
+	connectionString,
+	...(isProduction && {
+		ssl: {
+			rejectUnauthorized: false
+		}
+	})
 });
 
 export const knex = Knex({
 	client: "pg",
 	connection: {
-		user: process.env.PGUSER,
-		host: process.env.PGHOST,
-		database: process.env.PGDATABASE,
-		password: process.env.PGPASSWORD,
-		port: parseInt(process.env.PGPORT!),
+		connectionString,
 		...(isProduction && {
 			ssl: {
-				rejectUnauthorized: true
+				rejectUnauthorized: false
 			}
 		})
 	},
