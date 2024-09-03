@@ -1,4 +1,4 @@
-docker compose -f docker-compose.test.yml up -d postgres backend frontend
+docker compose -f docker-compose.test.yml up --build -d postgres backend frontend
 
 docker compose -f docker-compose.test.yml run --rm playwright
 

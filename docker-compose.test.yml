@@ -25,7 +25,7 @@ services:
       - ./packages:/usr/src/app/packages
     environment:
       - PGUSER
-      - PGHOST
+      - PGHOST=postgres
       - PGDATABASE
       - PGPASSWORD
       - PGPORT
@@ -34,10 +34,7 @@ services:
       - LOG_LEVEL
       - WORD2VEC_URL
       - WEBAPP_URL
-      - PRICE_ID
-      - STRIPE_PRIVATE_KEY
-      - STRIPE_SECRET
-      - SELF_HOSTED
+      - SELF_HOSTED=false
     depends_on:
       - postgres
     healthcheck:
@@ -78,7 +75,7 @@ services:
       dockerfile: Dockerfile.test
     environment:
       - PGUSER
-      - PGHOST
+      - PGHOST=postgres
       - PGDATABASE
       - PGPASSWORD
       - PGPORT

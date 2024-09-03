@@ -21,6 +21,9 @@ COPY . .
 # Install dependencies
 RUN pnpm install
 
+# Apply migrations
+RUN cd backend/ && pnpm dlx knex migrate:latest
+
 RUN pnpm exec playwright install --with-deps chromium
 
 # Build the extension
