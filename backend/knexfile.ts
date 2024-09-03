@@ -30,8 +30,8 @@ const config: KnexConfig = {
 			}
 		},
 		migrations: {
-			directory: "./dist/migrations",
-			extension: "js"
+			directory: "./src/migrations",
+			extension: "ts"
 		}
 	}
 };
