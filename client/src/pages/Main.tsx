@@ -61,7 +61,7 @@ export const Main = () => {
 					if (reset) {
 						// Reset data
 						setData(response.items);
-						setPage(1);
+						setPage(2);
 					} else {
 						// Append data
 						setData((prevItems) => [...prevItems, ...response.items]);
@@ -98,6 +98,7 @@ export const Main = () => {
 		if (isFirstRender.current) {
 			// Skip the effect on the first render
 			isFirstRender.current = false;
+			fetchData();
 		} else {
 			// Only run this on subsequent updates to `query` or `searchType`
 			if (searchType !== "semantic") {
