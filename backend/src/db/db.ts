@@ -8,10 +8,6 @@ const isProduction = process.env.NODE_ENV === "production";
 
 let connectionString = `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
 
-if (isProduction) {
-	connectionString += "?sslmode=require";
-}
-
 // Used for auth sessions
 export const pool = new Pool({
 	connectionString,
@@ -23,7 +19,7 @@ export const pool = new Pool({
 });
 
 export const knex = Knex({
-	client: "pg",
+	client: "postgresql",
 	connection: {
 		connectionString,
 		...(isProduction && {
