@@ -6,7 +6,7 @@ import path from "path";
 import fs from "fs";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Define the environment variable for the browser
 const browser = process.env.VITE_BROWSER;
