@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { deleteSessionById, getSessionsByUser } from "../../db/sessionsModel";
 import { requireAuth } from "../middlewares/requireAuth";
+import { validateSession } from "../middlewares/validatePayloads";
 import { closeSession } from "../../wsServer/wsServer";
 import { usersConnections } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
@@ -22,7 +23,7 @@ router.get("/sessions", requireAuth, async (req, res) => {
 	}
 });
 
-router.post("/sessions/logout", requireAuth, async (req, res) => {
+router.post("/sessions/logout", requireAuth, validateSession, async (req, res) => {
 	try {
 		const sessionId = req.body.sessionId as string;
 
@@ -36,7 +37,7 @@ router.post("/sessions/logout", requireAuth, async (req, res) => {
 	}
 });
 
-router.delete("/sessions", requireAuth, async (req, res) => {
+router.delete("/sessions", requireAuth, validateSession, async (req, res) => {
 	try {
 		const sessionId = req.body.sessionId as string;
 
