@@ -68,3 +68,25 @@ export const validateDeleteTabRequest = async (req: Request, res: Response, next
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
+
+export const validateGetLogsRequest = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const page = req.query.page as string;
+
+		// Check if page is provided
+		if (!page) {
+			return res.status(400).json({ error: "page parameter is required" });
+		}
+
+		// Check if page is a valid positive integer
+		const pageNumber = Number(page);
+		if (isNaN(pageNumber) || pageNumber <= 0 || !Number.isInteger(pageNumber)) {
+			return res.status(400).json({ error: "page parameter must be a positive integer" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating logs get request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};

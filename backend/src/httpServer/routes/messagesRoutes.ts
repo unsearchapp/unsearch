@@ -2,10 +2,11 @@ import { Router } from "express";
 import { getMessagesByUser } from "../../db/messagesModel";
 import { requireAuth } from "../middlewares/requireAuth";
 import { logger } from "../../utils/logger";
+import { validateGetLogsRequest } from "../middlewares/validatePayloads";
 
 const router = Router();
 
-router.get("/logs", requireAuth, async (req, res) => {
+router.get("/logs", requireAuth, validateGetLogsRequest, async (req, res) => {
 	try {
 		const pageSize = 25;
 		const page = req.query.page as string;
