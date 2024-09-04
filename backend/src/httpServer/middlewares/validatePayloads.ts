@@ -31,3 +31,40 @@ export const validateSession = async (req: Request, res: Response, next: NextFun
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
+
+export const validateGetTabsRequest = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const lastDate = req.query.lastDate as string;
+
+		// Allow lastDate if it's either an empty string or a valid date
+		if (lastDate !== "" && isNaN(new Date(lastDate).getTime())) {
+			return res.status(400).json({ error: "Invalid lastDate format" });
+		}
+
+		next();
+	} catch (error) {
+		logger.error("Error validating tabs get request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateDeleteTabRequest = async (req: Request, res: Response, next: NextFunction) => {
+	try {
+		const tabId = req.body._id as string;
+
+		// Check if sessionId is provided
+		if (!tabId) {
+			return res.status(400).json({ error: "_id is required" });
+		}
+
+		// Check if sessionId is a valid UUID
+		if (!validate(tabId)) {
+			return res.status(400).json({ error: "Invalid _id format" });
+		}
+
+		next();
+	} catch (error) {
+		logger.error("Error validating tab delete request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};

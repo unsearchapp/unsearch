@@ -2,10 +2,11 @@ import { Router } from "express";
 import { Tab, deleteTab, getTabsByUser } from "../../db/tabsModel";
 import { requireAuth } from "../middlewares/requireAuth";
 import { logger } from "../../utils/logger";
+import { validateGetTabsRequest, validateDeleteTabRequest } from "../middlewares/validatePayloads";
 
 const router = Router();
 
-router.get("/tabs", requireAuth, async (req, res) => {
+router.get("/tabs", requireAuth, validateGetTabsRequest, async (req, res) => {
 	try {
 		const userId = req.user!._id;
 		const pageSize = 10;
@@ -13,7 +14,7 @@ router.get("/tabs", requireAuth, async (req, res) => {
 		const limit = pageSize + 1;
 
 		// Fetch initial set of tabs
-		let tabs: Tab[] = await getTabsByUser(userId, lastDate as string, limit);
+		let tabs: Tab[] = await getTabsByUser(userId, lastDate, limit);
 
 		// Check if there are more tabs
 		const hasMore = tabs.length > Number(pageSize);
@@ -57,7 +58,7 @@ router.get("/tabs", requireAuth, async (req, res) => {
 	}
 });
 
-router.delete("/tabs", requireAuth, async (req, res) => {
+router.delete("/tabs", requireAuth, validateDeleteTabRequest, async (req, res) => {
 	try {
 		const _id = req.body._id as string;
 
