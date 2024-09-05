@@ -72,3 +72,11 @@ export const updateUserIsPaid = async (customerId: string, isPaid: boolean) => {
 		throw error;
 	}
 };
+
+export const updateUserPasswordByEmail = async (email: string, password: string) => {
+	try {
+		await knex("Users").where({ email }).update({ password });
+	} catch (error) {
+		throw error;
+	}
+};

@@ -56,8 +56,11 @@ export const Register = () => {
 							/>
 						</div>
 						<div className="grid gap-2">
-							<div className="flex items-center">
+							<div className="flex items-center justify-between">
 								<Label htmlFor="password">Password</Label>
+								<a href="/request-reset-password" className="text-sm font-bold text-primary">
+									Forgot password?
+								</a>
 							</div>
 							<Input
 								id="password"

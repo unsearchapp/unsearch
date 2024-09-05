@@ -1,9 +1,12 @@
-import { Router } from "express";
-import { createUser, User } from "../../db/usersModel";
+import { Router, Request, Response } from "express";
+import { createUser, User, updateUserPasswordByEmail } from "../../db/usersModel";
 import passport from "passport";
 import bcrypt from "bcryptjs";
 import "../auth/passport-config";
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 import { logger } from "../../utils/logger";
+import { validateRequestResetPassword } from "../middlewares/validatePayloads";
 
 const router = Router();
 
@@ -74,6 +77,82 @@ router.post("/register", async (req, res) => {
 
 		// Send a generic error message for other cases
 		return res.status(500).json({ message: "Something went wrong, please try again later" });
+	}
+});
+
+let transporter;
+if (
+	process.env.SMTP_HOST &&
+	process.env.SMTP_PORT &&
+	process.env.SMTP_USER &&
+	process.env.SMTP_PASS
+) {
+	transporter = nodemailer.createTransport({
+		host: process.env.SMTP_HOST,
+		port: Number(process.env.SMTP_PORT),
+		secure: process.env.SMTP_SECURE === "true",
+		auth: {
+			user: process.env.SMTP_USER,
+			pass: process.env.SMTP_PASS
+		}
+	});
+} else {
+	transporter = undefined;
+}
+
+const sendResetEmail = (email: string, token: string) => {
+	const link = `${process.env.WEBAPP_URL}/reset-password?token=${token}`;
+
+	if (transporter) {
+		transporter.sendMail({
+			from: process.env.EMAIL_FROM,
+			to: email,
+			subject: "Password Reset",
+			text: `Click this link to reset your password: ${link}`
+		});
+	} else {
+		logger.warn("SMTP settings are not configured. Email not sent");
+		throw Error("SMTP settings are not configured. Email not sent");
+	}
+};
+
+router.post(
+	"/request-reset-password",
+	validateRequestResetPassword,
+	(req: Request, res: Response) => {
+		try {
+			const email = req.body.email as string;
+			const token = jwt.sign({ email }, process.env.JWT_SECRET as string, {
+				expiresIn: "1h" // Token expires in 1 hour
+			});
+
+			sendResetEmail(email, token);
+
+			return res.status(200).json({ message: "Password reset link sent" });
+		} catch (error) {
+			logger.error(error, "Unexpected error on /generate-reset-link");
+			return res.status(500).json({ message: "Something went wrong, please try again later" });
+		}
+	}
+);
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+	try {
+		const { token, newPassword } = req.body;
+
+		// Verify the JWT token
+		const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { email: string };
+
+		// Hash the new password
+		const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+		// Update the user's password
+		await updateUserPasswordByEmail(decoded.email, hashedPassword);
+
+		return res.status(200).json({ message: "Password successfully reset" });
+	} catch (error) {
+		logger.error(error, "Unexpected error on /reset-password");
+		return res.status(400).json({ message: "Invalid or expired token" });
 	}
 });
 

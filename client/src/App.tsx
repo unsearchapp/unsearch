@@ -10,6 +10,8 @@ import { Logs } from "./pages/Logs";
 import { Plans } from "./pages/Plans";
 import { NotFound } from "./pages/NotFound";
 import { useAuthContext } from "./hooks/useAuthContext";
+import { ResetPassword } from "./pages/ResetPassword";
+import { PasswordResetRequest } from "./pages/RequestResetPassword";
 import ProtectedRoute from "./components/App/ProtectedRoute";
 
 const App: React.FC = () => {
@@ -23,6 +25,9 @@ const App: React.FC = () => {
 				{/* Public Routes */}
 				<Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
 				<Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+
+				<Route path="/request-reset-password" element={<PasswordResetRequest />} />
+				<Route path="/reset-password" element={<ResetPassword />} />
 
 				{/* Protected Routes */}
 				<Route

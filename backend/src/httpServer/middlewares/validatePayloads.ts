@@ -9,6 +9,7 @@ import {
 	MoveBookmarkBody,
 	DeleteBookmarkBody
 } from "../routes/bookmarksRoutes";
+import { findUserByEmail } from "../../db/usersModel";
 
 export const validateSession = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -376,6 +377,28 @@ export const validateDeleteHistoryItemsRequest = async (
 		next();
 	} catch (error) {
 		console.error("Error validating delete history request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateRequestResetPassword = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { email } = req.body;
+
+		// Check email exists in database
+		const user = await findUserByEmail(email);
+
+		if (!user) {
+			return res.status(400).json({ error: "Email does not exist" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating request reset password:", error);
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };

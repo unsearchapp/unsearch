@@ -44,6 +44,13 @@ services:
       - STRIPE_PRIVATE_KEY
       - STRIPE_SECRET
       - SELF_HOSTED
+      - SMTP_HOST
+      - SMTP_PORT
+      - SMTP_SECURE
+      - SMTP_USER
+      - SMTP_PASS
+      - EMAIL_FROM
+
     depends_on:
       postgres:
         condition: service_healthy

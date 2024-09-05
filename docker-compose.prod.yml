@@ -23,6 +23,13 @@ services:
       - STRIPE_PRIVATE_KEY
       - STRIPE_SECRET
       - SELF_HOSTED
+      - SMTP_HOST
+      - SMTP_PORT
+      - SMTP_SECURE
+      - SMTP_USER
+      - SMTP_PASS
+      - EMAIL_FROM
+      
     depends_on:
       migrate:
         condition: service_completed_successfully
