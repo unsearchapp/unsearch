@@ -100,6 +100,15 @@ export const getBookmarksBySession = async (
 	}
 };
 
+export const getBookmarkById = async (_id: string): Promise<Bookmark | undefined> => {
+	try {
+		const bookmark: Bookmark | undefined = await knex("Bookmarks").select().where({ _id }).first();
+		return bookmark;
+	} catch (error) {
+		throw error;
+	}
+};
+
 interface UpdateFields {
 	title?: Knex.Raw;
 	url?: Knex.Raw;

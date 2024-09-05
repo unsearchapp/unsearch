@@ -1,7 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { validate } from "uuid";
 import { getSessionById } from "../../db/sessionsModel";
+import { getBookmarkById } from "../../db/bookmarksModel";
 import { logger } from "../../utils/logger";
+import {
+	createBookmarkBody,
+	UpdateBookmarkBody,
+	MoveBookmarkBody,
+	DeleteBookmarkBody
+} from "../routes/bookmarksRoutes";
 
 export const validateSession = async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -87,6 +94,215 @@ export const validateGetLogsRequest = async (req: Request, res: Response, next: 
 		next();
 	} catch (error) {
 		console.error("Error validating logs get request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+function isValidUrl(str: string) {
+	try {
+		new URL(str);
+		return true;
+	} catch (err) {
+		return false;
+	}
+}
+
+export const validateCreateBookmarkRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { sessionId, parentId, index, title, url, id }: createBookmarkBody = req.body;
+
+		// Check if sessionId is provided and is a string
+		if (!sessionId || typeof sessionId !== "string") {
+			return res.status(400).json({ error: "sessionId is required and must be a string" });
+		}
+
+		// Check if sessionId is a valid UUID
+		if (!validate(sessionId)) {
+			return res.status(400).json({ error: "Invalid sessionId format" });
+		}
+
+		// Check if the session exists and belongs to the logged-in user
+		const session = await getSessionById(sessionId);
+		if (!session || session.userId !== req.user!._id) {
+			return res.status(403).json({ error: "Session does not exist" });
+		}
+
+		// Check if parentId is provided and is a string
+		if (!parentId || typeof parentId !== "string") {
+			return res.status(400).json({ error: "parentId is required and must be a string" });
+		}
+
+		// Check if index is provided and if so, it's a positive integer
+		if (index !== undefined && (!Number.isInteger(index) || index < 0)) {
+			return res.status(400).json({ error: "index, if provided, must be a non-negative integer" });
+		}
+
+		// Check if title is provided and is a string
+		if (!title || typeof title !== "string") {
+			return res.status(400).json({ error: "title is required and must be a string" });
+		}
+
+		// Check if url is provided and if so, it's a valid URL
+		if (url && !isValidUrl(url)) {
+			return res.status(400).json({ error: "url, if provided, must be a valid URL" });
+		}
+
+		// Check if id is provided and is a string
+		if (!id || typeof id !== "string") {
+			return res.status(400).json({ error: "id is required and must be a string" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating create bookmark request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateUpdateBookmarkRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { sessionId, title, url, _id }: UpdateBookmarkBody = req.body;
+
+		// Validate _id: required and must be a UUID
+		if (!_id) {
+			return res.status(400).json({ error: "_id is required" });
+		}
+
+		if (typeof _id !== "string") {
+			return res.status(400).json({ error: "_id must be a string" });
+		}
+
+		if (!validate(_id)) {
+			return res.status(400).json({ error: "_id format is invalid" });
+		}
+
+		// Validate sessionId: required and must be a UUID
+		if (!sessionId) {
+			return res.status(400).json({ error: "sessionId is required" });
+		}
+
+		if (typeof sessionId !== "string") {
+			return res.status(400).json({ error: "sessionId must be a string" });
+		}
+
+		if (!validate(sessionId)) {
+			return res.status(400).json({ error: "sessionId format is invalid" });
+		}
+
+		// Check session (and the user making the req) owns that bookmark
+		const bookmark = await getBookmarkById(_id);
+
+		if (!bookmark) {
+			return res.status(400).json({ error: "Bookmark does not exist" });
+		}
+
+		if (bookmark.sessionId !== sessionId || bookmark.userId !== req.user!._id) {
+			return res.status(400).json({ error: "Bookmark does not exist" });
+		}
+
+		// Validate title: if provided, it must be a string
+		if (title !== undefined && typeof title !== "string") {
+			return res.status(400).json({ error: "title must be a string if provided" });
+		}
+
+		// Validate url: if provided, it must be a valid URL
+		if (url !== undefined && !isValidUrl(url)) {
+			return res.status(400).json({ error: "url must be a valid URL if provided" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating update bookmark request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateMoveBookmarkRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { id, sessionId, index, parentId }: MoveBookmarkBody = req.body;
+
+		// Validate id: required and must be a string
+		if (!id || typeof id !== "string") {
+			return res.status(400).json({ error: "id is required and must be a string" });
+		}
+
+		// Validate sessionId: required and must be a string
+		if (!sessionId || typeof sessionId !== "string" || !validate(sessionId)) {
+			return res.status(400).json({ error: "sessionId is required and must be a string" });
+		}
+
+		// Validate index: required and must be a non-negative integer
+		if (index === undefined || typeof index !== "number" || index < 0 || !Number.isInteger(index)) {
+			return res
+				.status(400)
+				.json({ error: "index is required and must be a non-negative integer" });
+		}
+
+		// Validate parentId: required and must be a string
+		if (!parentId || typeof parentId !== "string") {
+			return res.status(400).json({ error: "parentId is required and must be a string" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating move bookmark request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateDeleteBookmarkRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { id, sessionId }: DeleteBookmarkBody = req.body;
+
+		// Validate id: required and must be a string
+		if (!id || typeof id !== "string") {
+			return res.status(400).json({ error: "id is required and must be a string" });
+		}
+
+		// Validate sessionId: required and must be a string
+		if (!sessionId || typeof sessionId !== "string" || !validate(sessionId)) {
+			return res.status(400).json({ error: "sessionId is required and must be a string" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating delete bookmark request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateExportBookmarksRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const sessionId = req.query.sessionId as string;
+
+		// Validate sessionId: required and must be a string
+		if (!sessionId || typeof sessionId !== "string" || !validate(sessionId)) {
+			return res.status(400).json({ error: "sessionId is required and must be a string" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating export bookmarks request:", error);
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };

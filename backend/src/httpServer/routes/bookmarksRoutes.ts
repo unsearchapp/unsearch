@@ -13,6 +13,13 @@ import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 import fs from "fs";
 import path from "path";
+import {
+	validateCreateBookmarkRequest,
+	validateUpdateBookmarkRequest,
+	validateMoveBookmarkRequest,
+	validateDeleteBookmarkRequest,
+	validateExportBookmarksRequest
+} from "../middlewares/validatePayloads";
 
 const router = Router();
 
@@ -26,7 +33,7 @@ router.get("/bookmarks", requireAuth, async (req: Request, res: Response) => {
 	}
 });
 
-interface createBookmarkBody {
+export interface createBookmarkBody {
 	sessionId: string;
 	parentId: string;
 	index?: number;
@@ -35,80 +42,115 @@ interface createBookmarkBody {
 	id: string;
 }
 
-router.post("/bookmarks", requireAuth, async (req: Request, res: Response) => {
-	try {
-		const userId = req.user!._id;
-		const { sessionId, parentId, index, title, url, id }: createBookmarkBody = req.body;
+router.post(
+	"/bookmarks",
+	requireAuth,
+	validateCreateBookmarkRequest,
+	async (req: Request, res: Response) => {
+		try {
+			const userId = req.user!._id;
+			const { sessionId, parentId, index, title, url, id }: createBookmarkBody = req.body;
 
-		const bookmarkInsert = { userId, sessionId, parentId, index, title, url, id };
-		const _id = await createBookmark(bookmarkInsert);
+			const bookmarkInsert = { userId, sessionId, parentId, index, title, url, id };
+			const _id = await createBookmark(bookmarkInsert);
 
-		// send message to extension
-		const type = "BOOKMARKS_CREATE";
-		const payload = { _id, id, createDetails: { index, parentId, title, url } };
-		sendMessageToUser(userId, sessionId, type, payload);
-
-		res.json({ data: true });
-	} catch (error) {
-		logger.error(error, "Error in /bookmarks POST route");
-		res.status(500).json({ data: false });
-	}
-});
-
-router.patch("/bookmarks", requireAuth, async (req: Request, res: Response) => {
-	try {
-		const userId = req.user!._id;
-		const { sessionId, _id, title, url } = req.body;
-		const { rowsUpdated, updatedId } = await updateBookmarkById(_id, userId, url, title);
-
-		if (rowsUpdated > 0) {
 			// send message to extension
-			const type = "BOOKMARKS_UPDATE";
-			const payload = { id: updatedId, changes: { title, url } };
-
+			const type = "BOOKMARKS_CREATE";
+			const payload = { _id, id, createDetails: { index, parentId, title, url } };
 			sendMessageToUser(userId, sessionId, type, payload);
+
+			res.json({ data: true });
+		} catch (error) {
+			logger.error(error, "Error in /bookmarks POST route");
+			res.status(500).json({ data: false });
 		}
-
-		res.json({ data: rowsUpdated });
-	} catch (error) {
-		logger.error(error, "Error in /bookmarks POST route");
-		res.status(500).json({ error });
 	}
-});
+);
 
-router.post("/bookmarks/move", requireAuth, async (req: Request, res: Response) => {
-	try {
-		const userId = req.user!._id;
-		const { sessionId, id, index, parentId } = req.body;
+export interface UpdateBookmarkBody {
+	_id: string;
+	sessionId: string;
+	url?: string;
+	title?: string;
+}
 
-		const updatedRows = await moveBookmark(id, userId, sessionId, index, parentId);
+router.patch(
+	"/bookmarks",
+	requireAuth,
+	validateUpdateBookmarkRequest,
+	async (req: Request, res: Response) => {
+		try {
+			const userId = req.user!._id;
+			const { sessionId, _id, title, url }: UpdateBookmarkBody = req.body;
+			const { rowsUpdated, updatedId } = await updateBookmarkById(_id, userId, url, title);
 
-		if (updatedRows > 0) {
-			// send message to extension
-			const type = "BOOKMARKS_MOVE";
-			const payload = { id, destination: { index, parentId } };
+			if (rowsUpdated > 0) {
+				// send message to extension
+				const type = "BOOKMARKS_UPDATE";
+				const payload = { id: updatedId, changes: { title, url } };
 
-			sendMessageToUser(userId, sessionId, type, payload);
+				sendMessageToUser(userId, sessionId, type, payload);
+			}
+
+			res.json({ data: rowsUpdated });
+		} catch (error) {
+			logger.error(error, "Error in /bookmarks POST route");
+			res.status(500).json({ error });
 		}
-
-		res.json({ data: updatedRows });
-	} catch (error) {
-		logger.error(error, "Error in /bookmarks POST route");
-		res.status(500).json({ error });
 	}
-});
+);
 
-router.delete("/bookmarks", requireAuth, async (req, res) => {
+export interface MoveBookmarkBody {
+	id: string;
+	sessionId: string;
+	index: number;
+	parentId: string;
+}
+
+router.post(
+	"/bookmarks/move",
+	requireAuth,
+	validateMoveBookmarkRequest,
+	async (req: Request, res: Response) => {
+		try {
+			const userId = req.user!._id;
+			const { sessionId, id, index, parentId }: MoveBookmarkBody = req.body;
+
+			const updatedRows = await moveBookmark(id, userId, sessionId, index, parentId);
+
+			if (updatedRows > 0) {
+				// send message to extension
+				const type = "BOOKMARKS_MOVE";
+				const payload = { id, destination: { index, parentId } };
+
+				sendMessageToUser(userId, sessionId, type, payload);
+			}
+
+			res.json({ data: updatedRows });
+		} catch (error) {
+			logger.error(error, "Error in /bookmarks POST route");
+			res.status(500).json({ error });
+		}
+	}
+);
+
+export interface DeleteBookmarkBody {
+	sessionId: string;
+	id: string;
+}
+
+router.delete("/bookmarks", requireAuth, validateDeleteBookmarkRequest, async (req, res) => {
 	try {
-		const sessionId = req.body.sessionId as string;
-		const id = req.body.id as string;
+		const { sessionId, id }: DeleteBookmarkBody = req.body;
 
 		const rowsDeleted: number = await deleteBookmarkById(id, req.user!._id, sessionId);
 
-		// Send message to extension
-		const type = "BOOKMARKS_REMOVE";
-		const payload = { id };
-		sendMessageToUser(req.user!._id, sessionId, type, payload);
+		if (rowsDeleted > 0) {
+			// Send message to extension
+			const type = "BOOKMARKS_REMOVE";
+			const payload = { id };
+			sendMessageToUser(req.user!._id, sessionId, type, payload);
+		}
 
 		res.json({ data: rowsDeleted });
 	} catch (error) {
@@ -160,24 +202,29 @@ const generateBookmarkHTML = (items: any[]): string => {
 	return html;
 };
 
-router.get("/bookmarks/export", requireAuth, async (req: Request, res: Response) => {
-	const sessionId = req.query.sessionId as string;
-	const bookmarks = await getBookmarksBySession(req.user!._id, sessionId);
-	const bookmarkTree = buildBookmarkTree(bookmarks);
+router.get(
+	"/bookmarks/export",
+	requireAuth,
+	validateExportBookmarksRequest,
+	async (req: Request, res: Response) => {
+		const sessionId = req.query.sessionId as string;
+		const bookmarks = await getBookmarksBySession(req.user!._id, sessionId);
+		const bookmarkTree = buildBookmarkTree(bookmarks);
 
-	let bookmarksHtml = `<DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n`;
+		let bookmarksHtml = `<DOCTYPE NETSCAPE-Bookmark-file-1>\n<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">\n<TITLE>Bookmarks</TITLE>\n<H1>Bookmarks</H1>\n<DL><p>\n`;
 
-	bookmarksHtml += generateBookmarkHTML(bookmarkTree);
+		bookmarksHtml += generateBookmarkHTML(bookmarkTree);
 
-	const filePath = path.join(__dirname, "bookmarks.html");
-	fs.writeFileSync(filePath, bookmarksHtml);
+		const filePath = path.join(__dirname, "bookmarks.html");
+		fs.writeFileSync(filePath, bookmarksHtml);
 
-	res.download(filePath, "bookmarks.html", (err) => {
-		if (err) {
-			console.error("Error downloading bookmarks:", err);
-		}
-		fs.unlinkSync(filePath); // Delete file after sending
-	});
-});
+		res.download(filePath, "bookmarks.html", (err) => {
+			if (err) {
+				console.error("Error downloading bookmarks:", err);
+			}
+			fs.unlinkSync(filePath); // Delete file after sending
+		});
+	}
+);
 
 export default router;
