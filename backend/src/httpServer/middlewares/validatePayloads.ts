@@ -306,3 +306,76 @@ export const validateExportBookmarksRequest = async (
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
+
+export const validateGetHistoryItemsRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { q, page, searchType, s } = req.query;
+
+		// Validate query (q): Can be empty but must be a string
+		if (q !== undefined && typeof q !== "string") {
+			return res.status(400).json({ error: "q (query) must be a string" });
+		}
+
+		// Validate page: Must be a string that can be converted to a positive integer
+		if (page) {
+			const pageNumber = Number(page);
+			if (isNaN(pageNumber) || pageNumber <= 0 || !Number.isInteger(pageNumber)) {
+				return res.status(400).json({ error: "page must be a positive integer" });
+			}
+		} else {
+			return res.status(400).json({ error: "page is required" });
+		}
+
+		// Validate searchType: Must match one of the allowed options
+		if (!searchType) {
+			return res.status(400).json({ error: "searchType is required" });
+		}
+
+		// Validate rawSessions (s): Can be a string, an array of strings, or undefined
+		if (s !== undefined && typeof s !== "string" && !Array.isArray(s)) {
+			return res
+				.status(400)
+				.json({ error: "s must be a string, an array of strings, or undefined" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating get history request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const validateDeleteHistoryItemsRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { ids, all } = req.body;
+
+		// Validate all: Must be a boolean
+		if (typeof all !== "boolean") {
+			return res.status(400).json({ error: "'all' is required and must be a boolean" });
+		}
+
+		// Validate ids: Must be an array of strings
+		if (!Array.isArray(ids)) {
+			return res.status(400).json({ error: "'ids' must be an array" });
+		}
+		if (ids.length === 0 && all === false) {
+			return res.status(400).json({ error: "'ids' array cannot be empty" });
+		}
+		if (!ids.every((id) => typeof id === "string")) {
+			return res.status(400).json({ error: "All elements in 'ids' must be strings" });
+		}
+
+		next();
+	} catch (error) {
+		console.error("Error validating delete history request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};

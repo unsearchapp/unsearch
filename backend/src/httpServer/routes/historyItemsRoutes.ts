@@ -11,10 +11,14 @@ import { requireAuth } from "../middlewares/requireAuth";
 import { sendMessageToUser } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
 import { getSessionsByUser } from "../../db/sessionsModel";
+import {
+	validateDeleteHistoryItemsRequest,
+	validateGetHistoryItemsRequest
+} from "../middlewares/validatePayloads";
 
 const router = Router();
 
-router.get("/history-items", requireAuth, async (req, res) => {
+router.get("/history-items", requireAuth, validateGetHistoryItemsRequest, async (req, res) => {
 	try {
 		const pageSize = 25;
 		const query = req.query.q as string;
@@ -91,37 +95,42 @@ router.get("/history-items", requireAuth, async (req, res) => {
 	}
 });
 
-router.delete("/history-items", requireAuth, async (req, res) => {
-	try {
-		const ids = req.body.ids as string[];
-		const all = req.body.all as boolean;
+router.delete(
+	"/history-items",
+	requireAuth,
+	validateDeleteHistoryItemsRequest,
+	async (req, res) => {
+		try {
+			const ids = req.body.ids as string[];
+			const all = req.body.all as boolean;
 
-		const { itemsToDelete, deletedRows } = await deleteHistoryItems(req.user!._id, ids, all);
+			const { itemsToDelete, deletedRows } = await deleteHistoryItems(req.user!._id, ids, all);
 
-		// Send message to extension
-		if (all) {
-			const sessions = await getSessionsByUser(req.user!._id);
-			sessions.forEach((session) => {
-				const type = "HISTORY_REMOVE";
-				const payload = { url: "", all };
+			// Send message to extension
+			if (all) {
+				const sessions = await getSessionsByUser(req.user!._id);
+				sessions.forEach((session) => {
+					const type = "HISTORY_REMOVE";
+					const payload = { url: "", all };
 
-				sendMessageToUser(req.user!._id, session._id, type, payload);
-			});
-		} else {
-			itemsToDelete.forEach((item) => {
-				const type = "HISTORY_REMOVE";
-				const payload = { url: item.url };
+					sendMessageToUser(req.user!._id, session._id, type, payload);
+				});
+			} else {
+				itemsToDelete.forEach((item) => {
+					const type = "HISTORY_REMOVE";
+					const payload = { url: item.url };
 
-				sendMessageToUser(req.user!._id, item.sessionId, type, payload);
-			});
+					sendMessageToUser(req.user!._id, item.sessionId, type, payload);
+				});
+			}
+
+			res.json({ data: deletedRows });
+		} catch (error) {
+			logger.error(error, "Error in /history-items delete route");
+			res.status(500).json({ data: 0 });
 		}
-
-		res.json({ data: deletedRows });
-	} catch (error) {
-		logger.error(error, "Error in /history-items delete route");
-		res.status(500).json({ data: 0 });
 	}
-});
+);
 
 router.get("/history-items/export", requireAuth, async (req: Request, res: Response) => {
 	try {
