@@ -90,7 +90,6 @@ services:
     depends_on:
       - postgres
 
-
   playwright:
     build:
       context: .

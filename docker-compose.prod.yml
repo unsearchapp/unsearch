@@ -29,7 +29,7 @@ services:
       - SMTP_USER
       - SMTP_PASS
       - EMAIL_FROM
-      
+
     depends_on:
       migrate:
         condition: service_completed_successfully
