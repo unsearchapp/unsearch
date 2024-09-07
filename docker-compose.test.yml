@@ -36,7 +36,8 @@ services:
       - WEBAPP_URL
       - SELF_HOSTED=false
     depends_on:
-      - postgres
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
       interval: 10s
@@ -61,13 +62,34 @@ services:
       - /usr/src/app/packages/node_modules
       - ./packages:/usr/src/app/packages
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 10s
       retries: 5
       start_period: 30s
       timeout: 10s
+
+  migrate:
+    image: node:20-slim
+    working_dir: /usr/src/app/backend
+    environment:
+      - PGUSER
+      - PGHOST
+      - PGDATABASE
+      - PGPASSWORD
+      - PGPORT
+      - PG_SECRET_KEY
+    command: >
+      sh -c "npm install -g pnpm && 
+            pnpm install && 
+            pnpm dlx knex migrate:latest"
+    volumes:
+      - ./backend:/usr/src/app/backend
+    depends_on:
+      - postgres
+
 
   playwright:
     build:

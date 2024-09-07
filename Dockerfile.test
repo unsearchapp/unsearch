@@ -21,13 +21,10 @@ COPY . .
 # Install dependencies
 RUN pnpm install
 
-# Apply migrations
-RUN cd backend/ && pnpm dlx knex migrate:latest
-
 RUN pnpm exec playwright install --with-deps chromium
 
 # Build the extension
-RUN VITE_WEBAPP_URL=http://frontend:3000 pnpm --filter extension build
+RUN VITE_BACKEND_URL=http://backend:5000 VITE_WS_URL=ws://backend:1234 VITE_WEBAPP_URL=http://frontend:3000 pnpm --filter extension build
 
 # Default command to run tests
 CMD ["sh", "-c", "xvfb-run -a -e /dev/stdout pnpm playwright test"]
