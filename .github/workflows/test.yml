@@ -32,7 +32,7 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          docker compose -f docker-compose.test.yml run --rm playwright
+          DEBUG=pw:browser docker compose -f docker-compose.test.yml run --rm playwright
 
       - name: Tear down environment
         run: |
