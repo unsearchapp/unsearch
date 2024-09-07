@@ -2,6 +2,14 @@ import { defineConfig } from "vocs";
 
 export default defineConfig({
 	title: "Docs",
+	markdown: {
+		code: {
+			themes: {
+				dark: "github-dark",
+				light: "github-light"
+			}
+		}
+	},
 	sidebar: [
 		{
 			text: "Product",
@@ -30,6 +38,7 @@ export default defineConfig({
 			items: [{ text: "0.1.0", link: "/changelog/0_1_0" }]
 		}
 	],
-	// banner: "Head to our new [Discord](https://discord.gg/)!",
-	logoUrl: "/unsearch.png"
+	banner: "Head to our new [Discord](https://discord.com/invite/HtqQegCZ4j)!",
+	logoUrl: "/unsearch.png",
+	iconUrl: "/favicon.ico"
 });
