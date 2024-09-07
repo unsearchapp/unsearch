@@ -19,31 +19,21 @@ jobs:
           echo "PGPORT=5432" >> .env
           echo "PG_SECRET_KEY=supersecret" >> .env
           echo "JWT_SECRET=supersecret" >> .env
-          echo "LOG_LEVEL=info" >> .env
           echo "APP_URL=http://backend:5000" >> .env
-          echo "WORD2VEC_URL=http://word2vec:5001" >> .env
-          echo "WEBAPP_URL=http://localhost:3000" >> .env
           echo "SELF_HOSTED=false" >> .env
 
-      - name: Create extension/.env file
+      - name: Build and run backend, frontend, and Postgres
         run: |
-          echo "VITE_WEBAPP_URL=http://localhost:3000" >> extension/.env
-          echo "VITE_BACKEND_URL=http://localhost:5000" >> extension/.env
-          echo "VITE_WS_URL=ws://localhost:1234" >> extension/.env
-        
-      - name: Start Docker Compose services
-        run: |
-          docker compose -f docker-compose.test.yml up -d postgres backend frontend
+          docker compose -f docker-compose.test.yml up --build -d postgres backend frontend migrate
 
-      - name: Wait for services to be healthy
+      - name: Build Playwright
         run: |
-          until docker compose -f docker-compose.test.yml ps | grep "healthy"; do sleep 5; done
+          docker compose -f docker-compose.test.yml build --no-cache playwright
 
-      - name: Run E2E Tests
+      - name: Run Playwright tests
         run: |
           docker compose -f docker-compose.test.yml run --rm playwright
 
-      - name: Tear down Docker Compose
-        if: always()
+      - name: Tear down environment
         run: |
           docker compose -f docker-compose.test.yml down
