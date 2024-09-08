@@ -12,3 +12,5 @@ screenshots/
 __pycache__
 
 nginx.conf
+
+*.bin.gz
