@@ -262,16 +262,19 @@ export const setBookmarkId = async (_id: string, newId: string) => {
 			}
 			const previousId = bookmark.id;
 
+			// Retrieve and store the _ids of child bookmarks where parentId equals previousId
+			const childBookmarks = await trx("Bookmarks").select("_id").where({ parentId: previousId });
+
+			const childBookmarkIds = childBookmarks.map((b) => b._id);
+
 			// Temporarily update child bookmarks to nullify parentId to avoid constraint issues
-			await trx("Bookmarks").where({ parentId: previousId }).update({ parentId: null });
+			await trx("Bookmarks").whereIn("_id", childBookmarkIds).update({ parentId: null });
 
 			// Update the bookmark with the new final ID
 			await trx("Bookmarks").where({ _id }).update({ id: newId });
 
 			// Now update the parentId of the child bookmarks to the new ID
-			await trx("Bookmarks")
-				.where({ parentId: null, userId: bookmark.userId, sessionId: bookmark.sessionId })
-				.update({ parentId: newId });
+			await trx("Bookmarks").whereIn("_id", childBookmarkIds).update({ parentId: newId });
 
 			return previousId;
 		});
