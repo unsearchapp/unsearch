@@ -343,15 +343,15 @@ export const deleteHistoryUrls = async (
 	urls: string[]
 ): Promise<number> => {
 	try {
-		// Encrypt each URL in the 'urls' array using the encryption key
-		const encryptedUrls = urls.map((url) =>
-			knex.raw("pgp_sym_encrypt(?, ?)", [url, encryptionKey])
-		);
+		const placeholders = urls.map(() => "?").join(",");
 
 		const deletedRows: number = await knex("HistoryItems")
 			.where({ userId, sessionId })
-			.whereIn("url", encryptedUrls)
+			.andWhere(
+				knex.raw(`pgp_sym_decrypt(url::bytea, ?) IN (${placeholders})`, [encryptionKey, ...urls])
+			)
 			.del();
+
 		return deletedRows;
 	} catch (error) {
 		throw error;
