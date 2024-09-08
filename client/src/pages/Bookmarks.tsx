@@ -68,6 +68,14 @@ export function Bookmarks() {
 					setOpenDialog(false);
 					setBookmarkToDelete(null);
 					fetchData();
+				} else {
+					toast({
+						title: "Something went wrong",
+						description: "Could not delete the bookmark. Please try again later."
+					});
+					setOpenDialog(false);
+					setBookmarkToDelete(null);
+					fetchData();
 				}
 			});
 		}
