@@ -56,7 +56,7 @@ export const Main = () => {
 
 		setLoadingSearch(true);
 		try {
-			getHistoryItems(query, searchType, selectedSessions, page).then(
+			getHistoryItems(query, searchType, selectedSessions, reset ? 1 : page).then(
 				(response: HistoryResponse) => {
 					if (reset) {
 						// Reset data
@@ -98,7 +98,7 @@ export const Main = () => {
 		if (isFirstRender.current) {
 			// Skip the effect on the first render
 			isFirstRender.current = false;
-			fetchData();
+			fetchData(true);
 		} else {
 			// Only run this on subsequent updates to `query` or `searchType`
 			if (searchType !== "semantic") {
