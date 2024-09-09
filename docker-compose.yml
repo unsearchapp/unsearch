@@ -38,7 +38,7 @@ services:
       - PG_SECRET_KEY
       - JWT_SECRET
       - LOG_LEVEL
-      - WORD2VEC_URL
+      - WORD2VEC_URL=http://word2vec:5001
       - WEBAPP_URL
       - PRICE_ID
       - STRIPE_PRIVATE_KEY
