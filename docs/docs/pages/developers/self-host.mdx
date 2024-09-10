@@ -1,1 +1,236 @@
-# Self host
+# Self-host Unsearch
+
+If you prefer to self-host Unsearch, follow these steps to get up and running. You will need the following:
+
+- **Ubuntu**: Minimum recommended version is 22.04.
+- **PostgreSQL**: Minimum recommended version is 13.
+- **Domain**: Required so you can connect from multiple devices.
+
+Make sure you have these services set up before proceeding with the installation.
+
+## 1. SSH into your server and clone the repository
+
+Begin by accessing your machine via SSH. Once connected, clone the Unsearch repository from GitHub:
+
+```bash
+git clone https://github.com/unsearchapp/unsearch.git
+```
+
+## 2. Create a `.env` file
+
+In the root directory of the cloned repository, create a .env file. This file will hold the environment variables needed to configure Unsearch.
+Here's the list of required and optional environment variables, along with example values:
+
+```yaml
+SELF_HOSTED=true
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=unsearch
+PGUSER=your_pg_user
+PGPASSWORD=your_pg_password
+PG_SECRET_KEY=your_pg_secret_key
+JWT_SECRET=your_jwt_secret
+APP_URL=https://dashboard.mydomain.com
+WORD2VEC_URL=https://dashboard.mydomain.com
+```
+
+Required Environment Variables:
+
+- `SELF_HOSTED`: Disables the payments integration. Set this to `true`.
+
+- `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`: These are the PostgreSQL connection details.
+
+```bash
+# Example:
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=unsearch
+PGUSER=your_pg_user
+PGPASSWORD=your_pg_password
+```
+
+- `PG_SECRET_KEY`: Used to encrypt sensitive data in PostgreSQL.
+
+- `JWT_SECRET`: Secret key for generating JWT tokens.
+
+- `APP_URL`: The URL of the backend without trailing `/`.(\*)
+
+- `WORD2VEC_URL`: The URL of the word embedding API without trailing `/`.(\*)
+
+Optional Environment Variables:
+
+- `LOG_LEVEL`: Controls the logging verbosity. Default is `info`. Valid values: `trace`, `debug`, `info`, `warn`, `error` and `fatal`.
+- `WEBAPP_URL`: Optional, required for payments and password reset.
+  This is the url of the web app without trailing `/`, for example (`https://dashboard.mydomain.com`)(\*)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`: Required for sending password reset links.
+
+```bash
+# Example:
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=youremail@gmail.com
+SMTP_PASS=yourpassword
+EMAIL_FROM=youremail@gmail.com
+```
+
+::::warning
+(\*) In this guide, all services are hosted on the same machine and share the same URL. However, this setup might change in the future.
+::::
+
+## 3. Install Docker Compose
+
+Docker Compose is used to define and run multi-container Docker applications. Install Docker Compose by following the instructions
+on the [official Docker documentation](https://docs.docker.com/engine/install/ubuntu/).
+
+For convenience, here is a summary of the commands to install Docker Compose on Ubuntu:
+
+1. Set up Docker's `apt` repository.
+
+```bash
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+
+2. Install the Docker packages.
+
+```bash
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+## 4. Update Your Domain DNS
+
+To ensure your subdomains point to the correct machine, update the DNS records for your domain as follows:
+
+1. **A Record** for dashboard:
+
+- **Name**: dashboard
+- **Content**: The public IP address of your machine.
+
+2. **A Record** for ws:
+- **Name**: ws
+- **Content**: The public IP address of your machine.
+
+These records will link both `dashboard.mydomain.com` and `ws.mydomain.com` to your server's IP address.
+
+
+
+## 5. Install Let's Encrypt and Add SSL to Domains
+
+To secure your domain with SSL, you’ll need to use Let's Encrypt. 
+Follow these steps to install Certbot and obtain an SSL certificate:
+
+1. Install `snapd`:
+
+```bash
+sudo apt install snapd
+```
+
+2. Install Certbot using `snapd`:
+
+```bash
+sudo snap install --classic certbot
+```
+
+3. Obtain an SSL Certificate:
+   Replace `mydomain.com` with your actual domain name and run:
+
+```bash
+sudo certbot certonly --standalone -d dashboard.mydomain.com
+sudo certbot certonly --standalone -d ws.mydomain.com
+```
+
+This commands will request an SSL certificate for both `dashboard.mydomain.com` and `ws.mydomain.com`
+
+4. Configure Automatic Renewal:
+
+Certbot automatically sets up a cron job to renew your certificates. You can verify the renewal process with:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+## 6. Setup nginx
+
+At the root of the repository, start by copying the example Nginx configuration file:
+
+```
+cp nginx.example.conf nginx.conf
+```
+
+This command creates a new `nginx.conf` file with default values. 
+You’ll need to edit this file to configure Nginx for your domain:
+
+Open `nginx.conf` in your preferred text editor (e.g., vim):
+
+```bash
+vim nginx.conf
+```
+Replace every occurrence of `example.com` with your actual domain name.
+
+This configuration will set up SSL for `dashboard.mydomain.com`, redirect requests to your webapp and backend, and handle WebSocket connections for `ws.mydomain.com`.
+
+Make sure to review and adjust any other settings in nginx.conf as needed for your specific setup.
+
+## 7. Start services
+
+To start all the services, run the following command at the root of the repository:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+This command will start your Docker containers in detached mode.
+
+Once the services are up and running, you can exit the machine.
+
+## 8. Build the extensions
+
+Now you can build the extensions and connect them to your domain. 
+On your local machine, clone the repository again to build the extensions:
+
+```bash
+git clone https://github.com/unsearchapp/unsearch.git
+```
+
+Then create an `.env` file at the root of the repository with the following values, 
+substituting mydomain.com for your actual domain:
+
+```bash
+VITE_WEBAPP_URL=https://dashboard.mydomain.com
+VITE_BACKEND_URL=https://dashboard.mydomain.com
+VITE_WS_URL=wss://ws.mydomain.com
+```
+
+Before building, install all required packages:
+
+```bash
+pnpm install
+```
+
+Run the following command to build the extensions:
+
+```
+pnpm --filter extension build
+```
+
+The extensions are now built and ready to use. You can find them at:
+
+- `/extension/dist/chrome`: Chrome extension (should work on any Chromium-based browser)
+- `/extension/dist/edge`: Edge extension
+- `/extension/dist/firefox`: Firefox extension
+
+::::info
+They are unpacked; you can create a `.zip` file with all of their contents if needed.
+::::
