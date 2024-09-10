@@ -57,6 +57,8 @@ services:
       context: .
       dockerfile: client/Dockerfile
       target: production
+      args:
+        - VITE_SELF_HOSTED=${SELF_HOSTED}
     environment:
       - APP_URL
       - VITE_SELF_HOSTED=${SELF_HOSTED}

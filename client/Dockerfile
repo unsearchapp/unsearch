@@ -62,7 +62,8 @@ COPY client ./client
 RUN pnpm install --no-link
 
 # Build the application
-RUN pnpm --filter client build
+ARG VITE_SELF_HOSTED
+RUN VITE_SELF_HOSTED=${VITE_SELF_HOSTED} pnpm --filter client build
 
 # Production stage
 FROM nginx:stable-alpine AS production
