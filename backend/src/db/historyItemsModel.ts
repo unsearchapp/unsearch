@@ -134,10 +134,24 @@ export const fuzzyHistoryItemsSearch = async (
 	query?: string
 ): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
-		const baseQuery = knex("HistoryItems")
-			.select("*")
+		const decryptedItemsQuery = knex("HistoryItems")
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) AS title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) AS url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount",
+				knex.raw(
+					"GREATEST(word_similarity(pgp_sym_decrypt(title::bytea, ?), ?), word_similarity(pgp_sym_decrypt(url::bytea, ?), ?)) AS similarity_score",
+					[encryptionKey, query, encryptionKey, query]
+				)
+			)
 			.where({ userId })
-			.modify(function (builder: Knex.QueryBuilder) {
+			.modify((builder) => {
 				if (sessionsIds.length > 0) {
 					builder.whereIn("sessionId", sessionsIds);
 				}
@@ -145,38 +159,31 @@ export const fuzzyHistoryItemsSearch = async (
 			.orderBy("lastVisitTime", "desc")
 			.limit(500);
 
-		const searchQuery = knex(baseQuery.as("limited_items")).where(function () {
-			this.whereRaw(
-				"GREATEST(word_similarity(pgp_sym_decrypt(title::bytea, ?), ?), word_similarity(pgp_sym_decrypt(url::bytea, ?), ?)) > ?",
-				[encryptionKey, query, encryptionKey, query, 0.3]
-			).orWhere(function () {
-				this.whereRaw("word_similarity(pgp_sym_decrypt(title::bytea, ?), ?) = 0", [
-					encryptionKey,
-					query
-				]).orWhereRaw("word_similarity(pgp_sym_decrypt(url::bytea, ?), ?) = 0", [
-					encryptionKey,
-					query
-				]);
-			});
-		});
+		const filteredItemsQuery = knex
+			.with("DecryptedItems", decryptedItemsQuery)
+			.select("*")
+			.from("DecryptedItems")
+			.where((builder) => {
+				builder.where("similarity_score", ">", 0.3).orWhere("similarity_score", "=", 0);
+			})
+			.orderBy("similarity_score", "desc");
 
-		// Query to fetch paginated items
-		const itemsQuery = knex(searchQuery.as("subquery"))
+		// Final selection and pagination
+		const itemsQuery = knex
+			.with("FilteredItems", filteredItemsQuery)
 			.select(
 				"_id",
 				"userId",
 				"sessionId",
 				"id",
-				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
-				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"title",
+				"url",
 				"lastVisitTime",
 				"visitCount",
 				"typedCount"
 			)
-			.orderByRaw(
-				"GREATEST(word_similarity(pgp_sym_decrypt(title::bytea, ?), ?), word_similarity(pgp_sym_decrypt(url::bytea, ?), ?)) DESC",
-				[encryptionKey, query, encryptionKey, query]
-			)
+			.from("FilteredItems")
+			.orderBy("similarity_score", "desc")
 			.orderBy("lastVisitTime", "desc")
 			.limit(pageSize)
 			.offset(offset);
@@ -217,7 +224,17 @@ export const semanticHistoryItemsSearch = async (
 ): Promise<{ items: HistoryItem[]; totalItems: number }> => {
 	try {
 		const baseQuery = knex("HistoryItems")
-			.select("*")
+			.select(
+				"_id",
+				"userId",
+				"sessionId",
+				"id",
+				knex.raw("pgp_sym_decrypt(title::bytea, ?) AS title", [encryptionKey]),
+				knex.raw("pgp_sym_decrypt(url::bytea, ?) AS url", [encryptionKey]),
+				"lastVisitTime",
+				"visitCount",
+				"typedCount"
+			)
 			.where({ userId })
 			.modify((builder: Knex.QueryBuilder) => {
 				if (sessionsIds.length > 0) {
@@ -227,31 +244,33 @@ export const semanticHistoryItemsSearch = async (
 			.orderBy("lastVisitTime", "desc")
 			.limit(500);
 
-		const searchQuery = knex(baseQuery.as("base_query")).where((builder) => {
-			wordsWithSimilarities.forEach((_, word) => {
-				builder
-					.orWhere(
-						knex.raw("pgp_sym_decrypt(title::bytea, ?) ILIKE ?", [encryptionKey, `%${word}%`])
-					)
-					.orWhere(
-						knex.raw("pgp_sym_decrypt(url::bytea, ?) ILIKE ?", [encryptionKey, `%${word}%`])
-					);
+		const searchQuery = knex
+			.with("BaseData", baseQuery)
+			.select("*")
+			.from("BaseData")
+			.where((builder) => {
+				wordsWithSimilarities.forEach((_, word) => {
+					builder
+						.orWhere(knex.raw("title ILIKE ?", [`%${word}%`]))
+						.orWhere(knex.raw("url ILIKE ?", [`%${word}%`]));
+				});
 			});
-		});
 
 		// Query to fetch paginated items
-		const itemsQuery = knex(searchQuery.as("search_query"))
+		const itemsQuery = knex
+			.with("SearchResults", searchQuery)
 			.select(
 				"_id",
 				"userId",
 				"sessionId",
 				"id",
-				knex.raw("pgp_sym_decrypt(title::bytea, ?) as title", [encryptionKey]),
-				knex.raw("pgp_sym_decrypt(url::bytea, ?) as url", [encryptionKey]),
+				"url",
+				"title",
 				"lastVisitTime",
 				"visitCount",
 				"typedCount"
 			)
+			.from("SearchResults")
 			.orderBy("lastVisitTime", "desc")
 			.limit(pageSize)
 			.offset(offset);
