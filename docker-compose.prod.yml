@@ -1,6 +1,6 @@
 services:
   backend:
-    image: backend-image:latest
+    image: ghcr.io/unsearchapp/backend-image:latest
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -29,7 +29,7 @@ services:
       - SMTP_USER
       - SMTP_PASS
       - EMAIL_FROM
-
+    restart: always
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -52,7 +52,7 @@ services:
       - ./backend:/usr/src/app/backend
 
   frontend:
-    image: frontend-image:latest
+    image: ghcr.io/unsearchapp/frontend-image:latest
     build:
       context: .
       dockerfile: client/Dockerfile
@@ -62,6 +62,7 @@ services:
       - VITE_SELF_HOSTED=${SELF_HOSTED}
     ports:
       - "3000:3000"
+    restart: always
     depends_on:
       - backend
 
@@ -72,6 +73,7 @@ services:
       target: production
     ports:
       - "5001:5001"
+    restart: always
 
   nginx-proxy:
     image: nginx:latest
@@ -81,3 +83,4 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: always
