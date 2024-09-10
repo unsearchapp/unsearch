@@ -114,3 +114,9 @@ export {
 	CommandSeparator
 } from "./components/ui/command";
 export { MultiSelect } from "./components/ui/multi-select";
+export {
+	Accordion,
+	AccordionItem,
+	AccordionTrigger,
+	AccordionContent
+} from "./components/ui/accordion";
