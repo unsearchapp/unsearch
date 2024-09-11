@@ -30,7 +30,7 @@ export const knex = Knex({
 	},
 	pool: {
 		min: 2,
-		max: 10
+		max: 100
 	},
 	migrations: {
 		directory: path.resolve(__dirname, "../migrations") // Adjust path to your migrations directory
