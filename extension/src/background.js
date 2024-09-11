@@ -151,7 +151,9 @@ function fetchHistory(text, startTime, endTime, indices) {
 		);
 
 		if (searchItems.length > 0 && (endTime === undefined || lastVisitTime < endTime)) {
-			setTimeout(fetchHistory(text, startTime, lastVisitTime, indices), 1000);
+			setTimeout(() => {
+				fetchHistory(text, startTime, lastVisitTime, indices);
+			}, 1000);
 		}
 	});
 }
