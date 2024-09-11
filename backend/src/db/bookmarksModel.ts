@@ -53,6 +53,29 @@ export const createBookmark = async (bookmark: BookmarkInsert): Promise<string> 
 	}
 };
 
+export const createBookmarks = async (bookmarks: BookmarkInsert[]): Promise<string[]> => {
+	try {
+		const encryptedBookmarks = bookmarks.map((bookmark) => ({
+			...bookmark,
+			title: bookmark.title
+				? knex.raw("pgp_sym_encrypt(?, ?)", [bookmark.title, encryptionKey])
+				: null,
+			url: bookmark.url ? knex.raw("pgp_sym_encrypt(?, ?)", [bookmark.url, encryptionKey]) : null
+		}));
+
+		const insertedBookmarks = await knex("Bookmarks")
+			.insert(encryptedBookmarks)
+			.onConflict()
+			.ignore()
+			.returning("_id");
+
+		// Extract the _id values from the insertedBookmarks array
+		return insertedBookmarks.map((bookmark: { _id: string }) => bookmark._id);
+	} catch (error) {
+		throw error;
+	}
+};
+
 export const getBookmarksByUser = async (userId: string): Promise<PublicBookmark[]> => {
 	try {
 		const bookmarks: PublicBookmark[] = await knex("Bookmarks")

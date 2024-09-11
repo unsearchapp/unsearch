@@ -1,6 +1,6 @@
 import {
 	BookmarkInsert,
-	createBookmark,
+	createBookmarks,
 	deleteBookmarkById,
 	moveBookmark,
 	updateBookmark,
@@ -35,18 +35,31 @@ function transformPayloadtoBookmark(
 	};
 }
 
+export const collectBookmarks = (
+	tree: BookmarksTreeNodePayload[],
+	userId: string,
+	sessionId: string,
+	bookmarks: BookmarkInsert[] = []
+): BookmarkInsert[] => {
+	for (const node of tree) {
+		const transformedNode: BookmarkInsert = transformPayloadtoBookmark(node, userId, sessionId);
+		bookmarks.push(transformedNode);
+
+		if (node.children && node.children.length > 0) {
+			collectBookmarks(node.children, userId, sessionId, bookmarks);
+		}
+	}
+	return bookmarks;
+};
+
 export const storeBookmarkTree = async (
 	tree: BookmarksTreeNodePayload[],
 	userId: string,
 	sessionId: string
 ) => {
-	for (const node of tree) {
-		const transformedNode: BookmarkInsert = transformPayloadtoBookmark(node, userId, sessionId);
-		await createBookmark(transformedNode);
-
-		if (node.children && node.children.length > 0) {
-			await storeBookmarkTree(node.children, userId, sessionId);
-		}
+	const bookmarks = await collectBookmarks(tree, userId, sessionId);
+	if (bookmarks.length > 0) {
+		await createBookmarks(bookmarks); // Bulk insert
 	}
 };
 
