@@ -41,46 +41,87 @@ Make sure you have installed [Docker Compose](https://docs.docker.com/compose/in
 
 2. Navigate to the project folder: `cd unsearch`
 
-3. Create an `.env` file on the root folder:
+3. Create an `.env` file on the root folder with the following variables:
 
-```
-WS_PORT=1234                         # Port of Websocket server
-HTTP_PORT=5000                       # Por of http server
-NODE_ENV=development                 #
-PGUSER=myuser                        # PostgreSQL settings
-PGHOST=postgres                      #     |         |
-PGDATABASE=mydb                      #     ⌄         ⌄
-PGPASSWORD=mypassword                #
-PGPORT=5432                          #
-JWT_SECRET=supersecret               # Used in the backend
-CLIENT_PORT=3000                     # The port of the React client
-LOG_LEVEL='info'                     # The log level of the backend, can be: trace, debug, info, warn, error and fatal
-APP_URL="http://backend:5000"        # The backend url
-WORD2VEC_URL="http://word2vec:5001"  # The url of the word embedding service
-WEBAPP_URL=http://localhost:3000     # Webapp url
-SELF_HOSTED=false                    # 'true' if app is being self hosted, to disable payments
-PRICE_ID=""                          # Stripe price id (optional)
-STRIPE_PRIVATE_KEY=""                # Stripe private key (optional)
-STRIPE_SECRET=""                     # Stripe webhook secret (optional)
+```bash
+PGUSER=myuser                            # PostgreSQL settings
+PGHOST=postgres                          #     |         |
+PGDATABASE=mydb                          #     ⌄         ⌄
+PGPASSWORD=mypassword                    #
+PGPORT=5432                              #
+PG_SECRET_KEY=supersecret                # Used to encrypt sensitive data in PostgreSQL
+JWT_SECRET=supersecret                   # Secret key for generating JWT tokens
+APP_URL=http://backend:5000              # Used in the frontend to proxy api requests to backend
+VITE_WEBAPP_URL=http://localhost:3000    # Used in the extension to point to each service
+VITE_BACKEND_URL=http://localhost:5000   #     |         |
+VITE_WS_URL=ws://localhost:1234          #     ⌄         ⌄
 ```
 
-To enable semantic search it is necessary to download `GoogleNews-vectors-negative300.bin.gz` and store the file inside `word2vec/`. If the file is not present, the semantic search will default to an exact search. Link to [download from Kaggle](https://www.kaggle.com/datasets/leadbest/googlenewsvectorsnegative300/data).
+You can also add some optional variables to enable other features:
 
-4. Run with Docker Compose: `docker-compose up --build`
-5. Install dependencies of extension: `cd extension && pnpm i`
-6. Create an `.env` file on the folder `/extensions`:
-
+```bash
+SMTP_HOST=smtp.gmail.com             # Email settings for password reset
+SMTP_PORT=465                        #         |              |
+SMTP_SECURE=true                     #         ⌄              ⌄
+SMTP_USER=email@mydomain.com         #
+SMTP_PASS=password                   #
+EMAIL_FROM=email@mydomain.com        #
+PRICE_ID=""                          # Stripe price id
+STRIPE_PRIVATE_KEY=""                # Stripe private key
+STRIPE_SECRET=""                     # Stripe webhook secret
 ```
-VITE_WEBAPP_URL=http://localhost:3000   # Url of the React client
-VITE_BACKEND_URL=http://localhost:5000  # Url of the http server
-VITE_WS_URL=ws://localhost:1234         # Url of the websocket server
+
+To enable semantic search it is necessary to download `GoogleNews-vectors-negative300.bin.gz` and store the file inside `word2vec/`. If the file is not present, the semantic search will default to an exact search.
+
+- Link to download from latest release.
+- Link to [download from Kaggle](https://www.kaggle.com/datasets/leadbest/googlenewsvectorsnegative300/data).
+
+4. Start services using Docker Compose:
+
+```bash
+docker-compose up --build
 ```
 
-7. To start dev mode: `pnpm dev:firefox`
+The frontend will be accessible at `http://localhost:3000`, the backend at `http://localhost:5000` and the WebSocket server at `ws://localhost:1234`.
 
-8. To build the extension: `pnpm build`
+5. Run the following command to install dependencies of the extension:
 
-After building, you can load the `/dist` folder as an unpackged extension on Google Chrome, Firefox and Microsoft Edge.
+```bash
+pnpm --filter extension install
+```
+
+6. Run the following command to start dev mode on Firefox:
+
+```bash
+pnpm --filter extension dev
+```
+
+7. Run the following command to build the extensions:
+
+```bash
+pnpm --filter extension build
+```
+
+The extensions are now built and ready to use. You can find them at:
+
+- `/extension/dist/chrome`: Chrome extension (should work on any Chromium-based browser)
+- `/extension/dist/edge`: Edge extension
+- `/extension/dist/firefox`: Firefox extension
+
+8. Format the code:
+
+Before making a pull request, ensure that your code is properly formatted by running:
+
+```bash
+pnpm format
+```
+
+9. Run integration tests:
+   To make sure everything is working correctly, run the integration tests with:
+
+```bash
+pnpm test
+```
 
 If you encounter any issues, make sure you are using the following versions of Node and pnpm:
 
