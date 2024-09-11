@@ -123,16 +123,15 @@ To ensure your subdomains point to the correct machine, update the DNS records f
 - **Content**: The public IP address of your machine.
 
 2. **A Record** for ws:
+
 - **Name**: ws
 - **Content**: The public IP address of your machine.
 
 These records will link both `dashboard.mydomain.com` and `ws.mydomain.com` to your server's IP address.
 
-
-
 ## 5. Install Let's Encrypt and Add SSL to Domains
 
-To secure your domain with SSL, you’ll need to use Let's Encrypt. 
+To secure your domain with SSL, you’ll need to use Let's Encrypt.
 Follow these steps to install Certbot and obtain an SSL certificate:
 
 1. Install `snapd`:
@@ -173,7 +172,7 @@ At the root of the repository, start by copying the example Nginx configuration 
 cp nginx.example.conf nginx.conf
 ```
 
-This command creates a new `nginx.conf` file with default values. 
+This command creates a new `nginx.conf` file with default values.
 You’ll need to edit this file to configure Nginx for your domain:
 
 Open `nginx.conf` in your preferred text editor (e.g., vim):
@@ -181,6 +180,7 @@ Open `nginx.conf` in your preferred text editor (e.g., vim):
 ```bash
 vim nginx.conf
 ```
+
 Replace every occurrence of `example.com` with your actual domain name.
 
 This configuration will set up SSL for `dashboard.mydomain.com`, redirect requests to your webapp and backend, and handle WebSocket connections for `ws.mydomain.com`.
@@ -201,14 +201,14 @@ Once the services are up and running, you can exit the machine.
 
 ## 8. Build the extensions
 
-Now you can build the extensions and connect them to your domain. 
+Now you can build the extensions and connect them to your domain.
 On your local machine, clone the repository again to build the extensions:
 
 ```bash
 git clone https://github.com/unsearchapp/unsearch.git
 ```
 
-Then create an `.env` file at the root of the repository with the following values, 
+Then create an `.env` file at the root of the repository with the following values,
 substituting mydomain.com for your actual domain:
 
 ```bash

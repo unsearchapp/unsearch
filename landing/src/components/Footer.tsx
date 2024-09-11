@@ -23,9 +23,7 @@ export const Footer = () => {
 						Discord
 					</a>
 				</p>
-				<p className="text-sm leading-loose text-muted-foreground">
-					contact@unsearch.app
-				</p>
+				<p className="text-sm leading-loose text-muted-foreground">contact@unsearch.app</p>
 			</div>
 		</footer>
 	);
