@@ -1,4 +1,4 @@
-import { buttonVariants, Button } from "ui";
+import { buttonVariants } from "ui";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import logo from "@packages/assets/images/unsearch.png";
 
