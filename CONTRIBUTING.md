@@ -73,7 +73,7 @@ STRIPE_SECRET=""                     # Stripe webhook secret
 
 To enable semantic search it is necessary to download `GoogleNews-vectors-negative300.bin.gz` and store the file inside `word2vec/`. If the file is not present, the semantic search will default to an exact search.
 
-- Link to download from latest release.
+- Link to download from [latest release](https://github.com/unsearchapp/unsearch/releases/tag/v0.1.0).
 - Link to [download from Kaggle](https://www.kaggle.com/datasets/leadbest/googlenewsvectorsnegative300/data).
 
 4. Start services using Docker Compose:
