@@ -16,14 +16,19 @@ COPY client/vite.config.ts ./client/
 COPY client/tailwind.config.js ./client/
 COPY client/postcss.config.js ./client/
 
+# Copy all package.json files for workspace packages
+COPY packages/ui/package.json ./packages/ui/
+
+RUN pnpm install
+
 # Copy shared assets
 COPY packages ./packages
 
-# Copy the rest of the application code
+# # Copy the rest of the application code
 COPY client ./client
 
 # Install dependencies
-RUN pnpm install --no-link
+RUN pnpm install
 
 # Default ports (overrided by docker-compose.yml)
 ENV CLIENT_PORT=3000

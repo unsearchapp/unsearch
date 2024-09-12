@@ -68,9 +68,9 @@ services:
       - "3000:3000"
     volumes:
       - ./client:/usr/src/app/client
-      - /usr/src/app/client/node_modules
-      - /usr/src/app/packages/node_modules
       - ./packages:/usr/src/app/packages
+      - /usr/src/app/client/node_modules
+      - /usr/src/app/packages/ui/node_modules
 
   word2vec:
     build:
