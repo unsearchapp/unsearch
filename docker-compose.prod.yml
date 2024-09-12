@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/unsearchapp/backend-image:latest
+    image: ghcr.io/unsearchapp/unsearch/backend-image:latest
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -52,7 +52,7 @@ services:
       - ./backend:/usr/src/app/backend
 
   frontend:
-    image: ghcr.io/unsearchapp/frontend-image:latest
+    image: ghcr.io/unsearchapp/unsearch/frontend-image:latest
     build:
       context: .
       dockerfile: client/Dockerfile
