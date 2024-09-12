@@ -20,7 +20,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: unsearchapp
+          username: ${{github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push backend image
@@ -29,7 +29,7 @@ jobs:
           context: .
           file: ./backend/Dockerfile
           target: production
-          tags: ghcr.io/unsearchapp/backend-image:latest
+          tags: ghcr.io/unsearchapp/unsearch/backend-image:latest
           push: true
 
       - name: Build and push frontend image
@@ -38,5 +38,5 @@ jobs:
           context: .
           file: ./client/Dockerfile
           target: production
-          tags: ghcr.io/unsearchapp/frontend-image:latest
+          tags: ghcr.io/unsearchapp/unsearch/frontend-image:latest
           push: true
