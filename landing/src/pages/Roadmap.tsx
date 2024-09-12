@@ -43,7 +43,7 @@ const roadmapItems = [
 		description: "Initial Alpha release with core features",
 		completed: true,
 		version: "0.1 Alpha",
-		releaseDate: "Sep 10"
+		releaseDate: "Sep 12"
 	},
 	{
 		title: "Add custom names to sessions",
@@ -51,6 +51,14 @@ const roadmapItems = [
 	},
 	{
 		title: "Share collections",
+		completed: false
+	},
+	{
+		title: "Add tags",
+		completed: false
+	},
+	{
+		title: "SSO",
 		completed: false
 	},
 	{
@@ -62,7 +70,7 @@ const roadmapItems = [
 		completed: false
 	},
 	{
-		title: "Access data from the extension",
+		title: "Access to your data from the extension",
 		completed: false
 	},
 	{
@@ -75,6 +83,10 @@ const roadmapItems = [
 	},
 	{
 		title: "Show related bookmarks when visiting a page",
+		completed: false
+	},
+	{
+		title: "IA integration",
 		completed: false
 	},
 	{
