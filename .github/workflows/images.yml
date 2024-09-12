@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*" # Trigger the workflow on tag push
+  workflow_dispatch:
 
 jobs:
   build-and-push:
