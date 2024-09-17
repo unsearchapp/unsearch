@@ -58,11 +58,10 @@ export default defineConfig({
 				const manifestContent = JSON.parse(fs.readFileSync(manifestSrc, "utf-8"));
 
 				// Update the manifest based on environment variables
-				manifestContent.host_permissions = [webappUrl];
 				if (mode === "development") {
 					manifestContent.content_security_policy = {
 						extension_pages:
-							"script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:5000 ws://localhost:1234"
+							"script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:5000 ws://localhost:1234  https://* wss://*"
 					};
 				} else {
 					// Remove CSP in production (its only necessary when the websocket server doesn't have SSL)

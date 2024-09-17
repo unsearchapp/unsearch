@@ -4,10 +4,12 @@ if (typeof importScripts === "function") {
 
 const BROWSER = import.meta.env.VITE_BROWSER;
 const ongoingOperations = new Set();
+let BACKEND_URL = null;
+let WS_URL = null;
 
 const checkAuth = async () => {
 	try {
-		const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/checkAuth`, {
+		const response = await fetch(`${BACKEND_URL}/api/checkAuth`, {
 			method: "GET",
 			credentials: "include"
 		});
@@ -188,7 +190,7 @@ function fetchBookmarks() {
 let webSocket = null;
 let isConnected = false;
 function connect(sessionId, token) {
-	webSocket = new WebSocket(import.meta.env.VITE_WS_URL);
+	webSocket = new WebSocket(WS_URL);
 
 	return new Promise((resolve, reject) => {
 		let timeoutId;
@@ -342,6 +344,13 @@ browser.runtime.onConnect.addListener((port) => {
 				} catch (error) {}
 
 				port.postMessage({ text: "success" });
+			} else if (msg.type === "HOST_UPDATE") {
+				try {
+					await setupHosts(msg.host);
+					port.postMessage({ status: "success", host: msg.host });
+				} catch (error) {
+					port.postMessage({ status: "error", error: error.message });
+				}
 			}
 		});
 	}
@@ -393,7 +402,7 @@ function getOrCreateUUID() {
 }
 
 async function setUp(sessionId) {
-	const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/token`, {
+	const response = await fetch(`${BACKEND_URL}/api/token`, {
 		credentials: "include"
 	});
 	const data = await response.json();
@@ -408,8 +417,24 @@ async function checkAndRecoverUID() {
 	await setUp(sessionId);
 }
 
-browser.runtime.onInstalled.addListener(checkAndRecoverUID);
-browser.runtime.onStartup.addListener(checkAndRecoverUID);
+async function setupHosts(baseHost) {
+	// Set initial value based on environment
+	const urls = createUrls(baseHost);
+
+	BACKEND_URL = urls.backendUrl;
+	WS_URL = urls.wsUrl;
+
+	// Store in localStorage
+	await browser.storage.local.set({ baseHost, urls });
+}
+
+browser.runtime.onInstalled.addListener(async () => {
+	await setupHosts(import.meta.env.VITE_BASE_HOST || "localhost");
+	checkAndRecoverUID();
+});
+browser.runtime.onStartup.addListener(async () => {
+	checkAndRecoverUID();
+});
 
 let tabsMapping = {};
 
@@ -494,3 +519,27 @@ initialCaptureTabsState();
 browser.tabs.onAttached.addListener(snapshotTabState);
 browser.tabs.onDetached.addListener(snapshotTabState);
 browser.tabs.onUpdated.addListener(onTabUpdate);
+
+function createUrls(baseHost) {
+	// Regex pattern to match valid domain names
+	const domainPattern = /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+
+	// Validate input: must be 'localhost' or a valid domain
+	if (baseHost !== "localhost" && !domainPattern.test(baseHost)) {
+		throw new Error(
+			"Invalid host. Must be 'localhost' or a valid domain (e.g., 'example.com')."
+		);
+	}
+
+	// Determine if it's localhost
+	const isLocalhost = baseHost === "localhost";
+
+	// Set the appropriate URLs
+	const backendUrl = isLocalhost ? `http://${baseHost}:5000` : `https://dashboard.${baseHost}`;
+
+	const webappUrl = isLocalhost ? `http://${baseHost}:3000` : `https://dashboard.${baseHost}`;
+
+	const wsUrl = isLocalhost ? `ws://${baseHost}:1234` : `wss://ws.${baseHost}`;
+
+	return { backendUrl, webappUrl, wsUrl };
+}
