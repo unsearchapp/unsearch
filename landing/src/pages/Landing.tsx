@@ -1,6 +1,5 @@
 import mockup from "@packages/assets/images/mockup.png";
 import { buttonVariants } from "ui";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Navbar } from "../components/Navbar";
 import { FAQs } from "../components/faqs";
 import StarryBackground from "../components/StarryBackground";
@@ -49,14 +48,13 @@ export const Landing = () => {
 									Create an account
 								</a>
 								<a
-									href={import.meta.env.VITE_GITHUB_URL}
+									href={"https://dashboard.unsearch.app/login?demo=true"}
 									target="_blank"
 									className={`${buttonVariants({
 										variant: "secondary"
 									})} flex w-full gap-x-2 hover:text-inherit sm:w-auto`}
 								>
-									<GitHubLogoIcon />
-									Star on GitHub
+									Try demo
 								</a>
 							</div>
 
