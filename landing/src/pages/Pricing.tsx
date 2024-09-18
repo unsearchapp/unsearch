@@ -15,7 +15,7 @@ const features: string[] = [
 
 export const Pricing = () => {
 	return (
-		<div className="min-h-screen overflow-x-auto">
+		<div className="relative min-h-screen overflow-hidden">
 			<Navbar />
 
 			<main className="mx-auto mt-48 max-w-4xl">

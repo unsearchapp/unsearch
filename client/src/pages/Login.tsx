@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Input, Label } from "ui";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import logo from "@packages/assets/images/unsearch.png";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+
+const isSelfHosted = import.meta.env.VITE_SELF_HOSTED === "true";
 
 export function Login() {
 	const { login } = useAuthContext();
@@ -12,6 +14,15 @@ export function Login() {
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const fromExtension = urlParams.get("fromExtension");
+
+	useEffect(() => {
+		const demo = urlParams.get("demo");
+
+		if (demo === "true" && !isSelfHosted) {
+			setEmail("demo@unsearch.app");
+			setPassword("unsearch.demo");
+		}
+	}, []);
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();

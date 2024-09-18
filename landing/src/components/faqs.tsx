@@ -2,7 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "ui
 
 export const FAQs = () => {
 	return (
-		<div className="py-16">
+		<div className="mx-4 py-16">
 			<h2 className="mb-6 text-4xl font-bold">FAQs</h2>
 
 			<Accordion type="single" collapsible>

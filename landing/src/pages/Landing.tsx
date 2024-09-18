@@ -1,11 +1,11 @@
 import mockup from "@packages/assets/images/mockup.png";
 import { buttonVariants } from "ui";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Navbar } from "../components/Navbar";
 import { FAQs } from "../components/faqs";
 import StarryBackground from "../components/StarryBackground";
 import { Footer } from "../components/Footer";
 import { ReaderIcon } from "@radix-ui/react-icons";
+import { Features } from "../components/Features";
 
 export const Landing = () => {
 	return (
@@ -49,14 +49,13 @@ export const Landing = () => {
 									Create an account
 								</a>
 								<a
-									href={import.meta.env.VITE_GITHUB_URL}
+									href={"https://dashboard.unsearch.app/login?demo=true"}
 									target="_blank"
 									className={`${buttonVariants({
 										variant: "secondary"
 									})} flex w-full gap-x-2 hover:text-inherit sm:w-auto`}
 								>
-									<GitHubLogoIcon />
-									Star on GitHub
+									Try demo
 								</a>
 							</div>
 
@@ -91,17 +90,19 @@ export const Landing = () => {
 					</div>
 				</div>
 
-				<div className="mx-auto max-w-md">
-					<div className="mx-auto max-w-md p-8">
-						<div className="mx-auto max-w-md rounded-lg p-8 shadow-lg">
+				<Features />
+
+				<div className="mx-auto max-w-lg">
+					<div className="p-8">
+						<div className="rounded-lg p-8 shadow-lg">
 							<h2 className="mb-6 text-center text-2xl font-bold text-white">
-								Install official extension
+								Install the official extension
 							</h2>
 							<div className="flex justify-center space-x-4">
 								<a
 									href="https://chromewebstore.google.com/detail/unsearch/hcalfepkjgcohdhnjhdpbnifeopodkkh"
 									target="_blank"
-									className="group flex flex-col items-center space-y-2 text-gray-300 transition-colors duration-200 hover:text-white"
+									className="group flex flex-col items-center space-y-2 font-bold text-gray-300 transition-colors duration-200 hover:text-white"
 									aria-label="Install Chrome extension"
 								>
 									<div className="rounded-full p-3 transition-colors duration-200 group-hover:text-gray-200">
@@ -118,7 +119,7 @@ export const Landing = () => {
 								<a
 									href="https://addons.mozilla.org/es/firefox/addon/unsearch/"
 									target="_blank"
-									className="group flex flex-col items-center space-y-2 text-gray-300 transition-colors duration-200 hover:text-white"
+									className="group flex flex-col items-center space-y-2 font-bold text-gray-300 transition-colors duration-200 hover:text-white"
 									aria-label="Install Firefox extension"
 								>
 									<div className="rounded-full p-3 transition-colors duration-200 group-hover:text-gray-200">
@@ -131,6 +132,23 @@ export const Landing = () => {
 										</svg>
 									</div>
 									<span>Firefox</span>
+								</a>
+								<a
+									href="https://microsoftedge.microsoft.com/addons/detail/unsearch/dpkeoedddcjbokmlpjglfgjbkodbaobe/"
+									target="_blank"
+									className="group flex flex-col items-center space-y-2 font-bold text-gray-300 transition-colors duration-200 hover:text-white"
+									aria-label="Install Firefox extension"
+								>
+									<div className="rounded-full p-3 transition-colors duration-200 group-hover:text-gray-200">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											viewBox="0 0 512 512"
+											className="h-10 w-10 fill-current text-gray-300 transition-colors duration-200 group-hover:text-white"
+										>
+											<path d="M120.1 37.4C161.1 12.2 207.7-.8 255 0C423 0 512 123.8 512 219.5C511.9 252.2 499 283.4 476.1 306.7C453.2 329.9 422.1 343.2 389.4 343.7C314.2 343.7 297.9 320.6 297.9 311.7C297.9 307.9 299.1 305.5 302.7 302.3L303.7 301.1L304.1 299.5C314.6 288 320 273.3 320 257.9C320 179.2 237.8 115.2 136 115.2C98.5 114.9 61.5 124.1 28.5 142.1C55.5 84.6 111.2 44.5 119.8 38.3C120.6 37.7 120.1 37.4 120.1 37.4V37.4zM135.7 355.5C134.3 385.5 140.3 415.5 152.1 442.7C165.7 469.1 184.8 493.7 208.6 512C149.1 500.5 97.1 468.1 59.2 422.7C21.1 376.3 0 318.4 0 257.9C0 206.7 62.4 163.5 136 163.5C172.6 162.9 208.4 174.4 237.8 196.2L234.2 197.4C182.7 215 135.7 288.1 135.7 355.5V355.5zM469.8 400L469.1 400.1C457.3 418.9 443.2 435.2 426.9 449.6C396.1 477.6 358.8 495.1 318.1 499.5C299.5 499.8 281.3 496.3 264.3 488.1C238.7 477.8 217.2 458.1 202.7 435.1C188.3 411.2 181.6 383.4 183.7 355.5C183.1 335.4 189.1 315.2 198.7 297.3C212.6 330.4 236.2 358.6 266.3 378.1C296.4 397.6 331.8 407.6 367.7 406.7C398.7 407 429.8 400 457.9 386.2L459.8 385.3C463.7 383 467.5 381.4 471.4 385.3C475.9 390.2 473.2 394.5 470.2 399.3C470 399.5 469.9 399.8 469.8 400V400z" />
+										</svg>
+									</div>
+									<span>Edge</span>
 								</a>
 							</div>
 						</div>
