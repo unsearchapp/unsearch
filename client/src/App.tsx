@@ -12,7 +12,6 @@ import { NotFound } from "./pages/NotFound";
 import { useAuthContext } from "./hooks/useAuthContext";
 import { ResetPassword } from "./pages/ResetPassword";
 import { PasswordResetRequest } from "./pages/RequestResetPassword";
-import ProtectedRoute from "./components/App/ProtectedRoute";
 
 const App: React.FC = () => {
 	const { isAuthenticated } = useAuthContext();
@@ -30,58 +29,14 @@ const App: React.FC = () => {
 				<Route path="/reset-password" element={<ResetPassword />} />
 
 				{/* Protected Routes */}
-				<Route
-					path="/"
-					element={
-						<ProtectedRoute requirePaid={!isSelfHosted}>
-							<Main />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/sessions"
-					element={
-						<ProtectedRoute requirePaid={!isSelfHosted}>
-							<Sessions />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/tabs"
-					element={
-						<ProtectedRoute requirePaid={!isSelfHosted}>
-							<Tabs />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/logs"
-					element={
-						<ProtectedRoute requirePaid={!isSelfHosted}>
-							<Logs />
-						</ProtectedRoute>
-					}
-				/>
-				<Route
-					path="/bookmarks"
-					element={
-						<ProtectedRoute requirePaid={!isSelfHosted}>
-							<Bookmarks />
-						</ProtectedRoute>
-					}
-				/>
+				<Route path="/" element={<Main />} />
+				<Route path="/sessions" element={<Sessions />} />
+				<Route path="/tabs" element={<Tabs />} />
+				<Route path="/logs" element={<Logs />} />
+				<Route path="/bookmarks" element={<Bookmarks />} />
 
 				{/* Plans Route (only if not self-hosted) */}
-				{!isSelfHosted && (
-					<Route
-						path="/plans"
-						element={
-							<ProtectedRoute requirePaid={false}>
-								<Plans />
-							</ProtectedRoute>
-						}
-					/>
-				)}
+				{!isSelfHosted && <Route path="/plans" element={<Plans />} />}
 
 				{/* 404 Route */}
 				<Route path="*" element={<NotFound />} />
