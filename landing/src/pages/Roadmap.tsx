@@ -105,7 +105,7 @@ const roadmapItems = [
 
 export const Roadmap = () => {
 	return (
-		<div className="min-h-screen overflow-x-auto">
+		<div className="relative min-h-screen overflow-hidden">
 			<Navbar />
 
 			<h1 className="my-48 mb-8 text-center text-3xl font-bold">Roadmap</h1>
