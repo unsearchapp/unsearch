@@ -5,6 +5,7 @@ import { FAQs } from "../components/faqs";
 import StarryBackground from "../components/StarryBackground";
 import { Footer } from "../components/Footer";
 import { ReaderIcon } from "@radix-ui/react-icons";
+import { Features } from "../components/Features";
 
 export const Landing = () => {
 	return (
@@ -88,6 +89,8 @@ export const Landing = () => {
 						</div>
 					</div>
 				</div>
+
+				<Features />
 
 				<div className="mx-auto max-w-lg">
 					<div className="p-8">
