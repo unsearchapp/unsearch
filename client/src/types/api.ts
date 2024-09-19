@@ -1,5 +1,6 @@
 export interface Session {
 	_id: string;
+	name: string;
 	browser: string;
 	arch: string;
 	os: string;

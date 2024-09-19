@@ -3,6 +3,7 @@ import { knex } from "./db";
 export interface Session {
 	_id: string;
 	userId: string;
+	name: string;
 	browser: string;
 	arch: string;
 	os: string;
@@ -15,13 +16,14 @@ type PublicSession = Omit<Session, "userId">;
 export const createSession = async (
 	id: string,
 	userId: string,
+	name: string,
 	browser: string,
 	arch: string,
 	os: string
 ): Promise<Session> => {
 	try {
 		const [session]: Session[] = await knex("Sessions")
-			.insert({ _id: id, userId, browser, arch, os })
+			.insert({ _id: id, userId, name, browser, arch, os })
 			.returning("*");
 		return session;
 	} catch (error) {
@@ -60,6 +62,15 @@ export const deleteSessionById = async (userId: string, sessionId: string): Prom
 export const updateSessionLastConnectedDate = async (sessionId: string, lastConnectedAt: Date) => {
 	try {
 		await knex("Sessions").where({ _id: sessionId }).update({ lastConnectedAt });
+	} catch (error) {
+		throw error;
+	}
+};
+
+export const updateSessionName = async (sessionId: string, name: string): Promise<number> => {
+	try {
+		const updatedRows = await knex("Sessions").where({ _id: sessionId }).update({ name });
+		return updatedRows;
 	} catch (error) {
 		throw error;
 	}

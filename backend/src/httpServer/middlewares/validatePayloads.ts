@@ -9,7 +9,51 @@ import {
 	MoveBookmarkBody,
 	DeleteBookmarkBody
 } from "../routes/bookmarksRoutes";
+import { SessionEditBody } from "../routes/sessionRoutes";
 import { findUserByEmail } from "../../db/usersModel";
+
+export const validateSessionEditRequest = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { sessionId, name }: SessionEditBody = req.body;
+
+		// Validate _id: required and must be a UUID
+		if (!sessionId) {
+			return res.status(400).json({ error: "sessionId is required" });
+		}
+
+		if (typeof sessionId !== "string") {
+			return res.status(400).json({ error: "sessionId must be a string" });
+		}
+
+		if (!validate(sessionId)) {
+			return res.status(400).json({ error: "sessionId format is invalid" });
+		}
+
+		// Check session (and the user making the req) owns that bookmark
+		const session = await getSessionById(sessionId);
+
+		if (!session) {
+			return res.status(400).json({ error: "Session does not exist" });
+		}
+
+		if (session.userId !== req.user!._id) {
+			return res.status(400).json({ error: "Session does not exist" });
+		}
+
+		if (!name || typeof name !== "string") {
+			return res.status(400).json({ error: "name must be a string if provided" });
+		}
+
+		next();
+	} catch (error) {
+		logger.error("Error validating session edit request:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
 
 export const validateSession = async (req: Request, res: Response, next: NextFunction) => {
 	try {

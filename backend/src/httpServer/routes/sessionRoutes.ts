@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { deleteSessionById, getSessionsByUser } from "../../db/sessionsModel";
+import { deleteSessionById, getSessionsByUser, updateSessionName } from "../../db/sessionsModel";
 import { requireAuth } from "../middlewares/requireAuth";
-import { validateSession } from "../middlewares/validatePayloads";
+import { validateSession, validateSessionEditRequest } from "../middlewares/validatePayloads";
 import { closeSession } from "../../wsServer/wsServer";
 import { usersConnections } from "../../wsServer/wsServer";
 import { logger } from "../../utils/logger";
@@ -20,6 +20,23 @@ router.get("/sessions", requireAuth, async (req, res) => {
 	} catch (error) {
 		logger.error(error, "Error in /sessions GET route");
 		res.status(500).json({ error });
+	}
+});
+
+export interface SessionEditBody {
+	sessionId: string;
+	name: string;
+}
+
+router.post("/sessions", requireAuth, validateSessionEditRequest, async (req, res) => {
+	try {
+		const { sessionId, name }: SessionEditBody = req.body;
+		const udpatedRows = await updateSessionName(sessionId, name);
+
+		res.json({ data: udpatedRows });
+	} catch (error) {
+		logger.error(error, "Error in /sessions POST route");
+		res.status(500).json({ data: 0 });
 	}
 });
 

@@ -85,7 +85,7 @@ export const Main = () => {
 		getSessions().then((sessions) => {
 			const updatedSessions = sessions.map((session) => ({
 				value: session._id,
-				label: session.browser.charAt(0).toUpperCase() + session.browser.slice(1),
+				label: session.name,
 				icon: `./${session.browser}.svg`
 			}));
 			setSessions(updatedSessions);

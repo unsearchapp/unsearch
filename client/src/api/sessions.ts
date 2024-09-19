@@ -8,6 +8,19 @@ export const getSessions = async (): Promise<Session[]> => {
 	return data.data;
 };
 
+export const editSession = async (sessionId: string, name: string): Promise<number> => {
+	const response = await fetch("/api/sessions/", {
+		method: "POST",
+		credentials: "include",
+		body: JSON.stringify({ sessionId, name }),
+		headers: {
+			"Content-Type": "application/json"
+		}
+	});
+	const data: ApiResponse<number> = await response.json();
+	return data.data;
+};
+
 export const deleteSession = async (sessionId: string): Promise<number> => {
 	const response = await fetch("/api/sessions", {
 		method: "DELETE",
