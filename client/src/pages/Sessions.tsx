@@ -31,11 +31,13 @@ import { PageLayout } from "@/components/Layout";
 import { Session } from "@/types/api";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import { deleteSession } from "@/api/sessions";
+import { EditSessionModal } from "@/components/Sessions/EditSessionModal";
 
 export function Sessions() {
 	const [sessions, setSessions] = useState<Session[] | null>(null);
 	const [delSessionId, setDelSessionId] = useState<string | null>(null);
 	const [disconnectSessionId, setDisconnectSessionId] = useState<string | null>(null);
+	const [itemToEdit, setItemToEdit] = useState<Session | null>(null);
 	const { toast } = useToast();
 
 	function fetchData() {
@@ -108,6 +110,7 @@ export function Sessions() {
 				<TableHeader>
 					<TableRow>
 						<TableHead>Session</TableHead>
+						<TableHead>Details</TableHead>
 						<TableHead>Status</TableHead>
 						<TableHead>Last connected</TableHead>
 						<TableHead>Created</TableHead>
@@ -119,8 +122,13 @@ export function Sessions() {
 						sessions.map((session) => {
 							return (
 								<TableRow key={session._id}>
-									<TableCell className="flex gap-x-2 font-medium">
-										<img src={`./${session.browser}.svg`} className="w-5" />
+									<TableCell className="font-medium">
+										<div className="flex items-center gap-x-2">
+											<img src={`./${session.browser}.svg`} className="w-5" />
+											<div>{session.name}</div>
+										</div>
+									</TableCell>
+									<TableCell className="gap-x-2 font-medium">
 										<div className="flex flex-col">
 											<span className="capitalize">{session.browser}</span>
 											<span className="text-gray-400">
@@ -153,6 +161,9 @@ export function Sessions() {
 											<DropdownMenuContent>
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
 												<DropdownMenuSeparator />
+												<DropdownMenuItem onClick={() => setItemToEdit(session)}>
+													Edit
+												</DropdownMenuItem>
 												{session.active && (
 													<DropdownMenuItem onClick={(e) => setDisconnectSessionId(session._id)}>
 														Disconnect
@@ -169,6 +180,8 @@ export function Sessions() {
 						})}
 				</TableBody>
 			</Table>
+
+			<EditSessionModal session={itemToEdit} setSession={setItemToEdit} onSuccess={fetchData} />
 
 			{(!sessions || sessions.length === 0) && (
 				<div className="mx-auto max-w-md p-8">
