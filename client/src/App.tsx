@@ -29,14 +29,22 @@ const App: React.FC = () => {
 				<Route path="/reset-password" element={<ResetPassword />} />
 
 				{/* Protected Routes */}
-				<Route path="/" element={<Main />} />
-				<Route path="/sessions" element={<Sessions />} />
-				<Route path="/tabs" element={<Tabs />} />
-				<Route path="/logs" element={<Logs />} />
-				<Route path="/bookmarks" element={<Bookmarks />} />
+				<Route path="/" element={isAuthenticated ? <Main /> : <Navigate to="/login" />} />
+				<Route
+					path="/sessions"
+					element={isAuthenticated ? <Sessions /> : <Navigate to="/login" />}
+				/>
+				<Route path="/tabs" element={isAuthenticated ? <Tabs /> : <Navigate to="/login" />} />
+				<Route path="/logs" element={isAuthenticated ? <Logs /> : <Navigate to="/login" />} />
+				<Route
+					path="/bookmarks"
+					element={isAuthenticated ? <Bookmarks /> : <Navigate to="/login" />}
+				/>
 
 				{/* Plans Route (only if not self-hosted) */}
-				{!isSelfHosted && <Route path="/plans" element={<Plans />} />}
+				{!isSelfHosted && (
+					<Route path="/plans" element={isAuthenticated ? <Plans /> : <Navigate to="/login" />} />
+				)}
 
 				{/* 404 Route */}
 				<Route path="*" element={<NotFound />} />
