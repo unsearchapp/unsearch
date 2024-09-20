@@ -10,19 +10,22 @@ services:
     ports:
       - "${PGPORT}:${PGPORT}"
 
-  backend:
-    image: backend-image:latest
+  unsearch:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
       target: development
     ports:
       - "1234:1234"
       - "5000:5000"
+      - "3000:3000"
     volumes:
       - ./backend:/usr/src/app/backend
-      - /usr/src/app/backend/node_modules
+      - ./client:/usr/src/app/client
       - ./packages:/usr/src/app/packages
+      - /usr/src/app/backend/node_modules
+      - /usr/src/app/client/node_modules
+      - /usr/src/app/packages/ui/node_modules
     environment:
       - PGUSER
       - PGHOST=postgres
@@ -35,37 +38,13 @@ services:
       - WORD2VEC_URL
       - WEBAPP_URL
       - SELF_HOSTED=false
+      - APP_URL
+      - VITE_SELF_HOSTED=${SELF_HOSTED}
     depends_on:
       migrate:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/ping"]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
-
-  frontend:
-    image: frontend-image:latest
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-      target: development
-    environment:
-      - APP_URL
-      - VITE_SELF_HOSTED=${SELF_HOSTED}
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./client:/usr/src/app/client
-      - /usr/src/app/client/node_modules
-      - /usr/src/app/packages/node_modules
-      - ./packages:/usr/src/app/packages
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 10s
       retries: 5
       start_period: 30s
@@ -104,5 +83,5 @@ services:
     volumes:
       - ./screenshots:/app/screenshots
     depends_on:
-      frontend:
+      unsearch:
         condition: service_healthy

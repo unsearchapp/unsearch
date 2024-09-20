@@ -24,20 +24,17 @@ jobs:
           username: ${{github.actor}}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./backend/Dockerfile
-          target: production
-          tags: ghcr.io/unsearchapp/unsearch/backend-image:latest
-          push: true
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: Build and push frontend image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./client/Dockerfile
+          file: ./Dockerfile
           target: production
-          tags: ghcr.io/unsearchapp/unsearch/frontend-image:latest
+          tags: |
+            ghcr.io/unsearchapp/unsearch/unsearch:${{ env.VERSION }}
+            ghcr.io/unsearchapp/unsearch/unsearch:latest
           push: true
