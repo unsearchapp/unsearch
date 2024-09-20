@@ -1,13 +1,16 @@
 services:
-  backend:
-    image: ghcr.io/unsearchapp/unsearch/backend-image:latest
+  unsearch:
+    image: ghcr.io/unsearchapp/unsearch/unsearch:latest
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: Dockerfile
       target: production
+      args:
+        - VITE_SELF_HOSTED=${SELF_HOSTED}
     ports:
       - "1234:1234"
       - "5000:5000"
+      - "3000:3000"
     environment:
       - PGUSER
       - PGHOST
@@ -29,6 +32,11 @@ services:
       - SMTP_USER
       - SMTP_PASS
       - EMAIL_FROM
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
+      - APP_URL
+      - VITE_SELF_HOSTED=${SELF_HOSTED}
+
     restart: always
     depends_on:
       migrate:
@@ -50,23 +58,6 @@ services:
             KNEX_ENV=production pnpm dlx knex migrate:latest"
     volumes:
       - ./backend:/usr/src/app/backend
-
-  frontend:
-    image: ghcr.io/unsearchapp/unsearch/frontend-image:latest
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-      target: production
-      args:
-        - VITE_SELF_HOSTED=${SELF_HOSTED}
-    environment:
-      - APP_URL
-      - VITE_SELF_HOSTED=${SELF_HOSTED}
-    ports:
-      - "3000:3000"
-    restart: always
-    depends_on:
-      - backend
 
   word2vec:
     build:

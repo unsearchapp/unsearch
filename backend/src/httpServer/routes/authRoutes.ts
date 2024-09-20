@@ -156,43 +156,45 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 	}
 });
 
-router.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
-	const fromExtension = req.query.fromExtension === "true" ? "true" : "false";
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+	router.get("/auth/google", (req: Request, res: Response, next: NextFunction) => {
+		const fromExtension = req.query.fromExtension === "true" ? "true" : "false";
 
-	passport.authenticate("google", {
-		scope: ["profile", "email"],
-		state: fromExtension // Pass it via OAuth state
-	})(req, res, next);
-});
+		passport.authenticate("google", {
+			scope: ["profile", "email"],
+			state: fromExtension // Pass it via OAuth state
+		})(req, res, next);
+	});
 
-// Google OAuth callback route
-router.get("/auth/google/callback", (req: Request, res: Response, next: NextFunction) => {
-	passport.authenticate("google", (err: any, user: any, info: any) => {
-		if (err) {
-			return next(err);
-		}
-		if (!user) {
-			// Handle the case where no user is returned (authentication failure)
-			return res.redirect(`${process.env.WEBAPP_URL}/login?error=auth`);
-		}
-
-		// Log in the user and handle session
-		req.logIn(user, (err: any) => {
+	// Google OAuth callback route
+	router.get("/auth/google/callback", (req: Request, res: Response, next: NextFunction) => {
+		passport.authenticate("google", (err: any, user: any, info: any) => {
 			if (err) {
 				return next(err);
 			}
+			if (!user) {
+				// Handle the case where no user is returned (authentication failure)
+				return res.redirect(`${process.env.WEBAPP_URL}/login?error=auth`);
+			}
 
-			// Check if fromExtension was passed
-			const fromExtension = req.query.state === "true";
+			// Log in the user and handle session
+			req.logIn(user, (err: any) => {
+				if (err) {
+					return next(err);
+				}
 
-			// Redirect to the dashboard with the fromExtension param only if it's true
-			const redirectUrl = fromExtension
-				? `${process.env.WEBAPP_URL}?fromExtension=true`
-				: `${process.env.WEBAPP_URL}`;
+				// Check if fromExtension was passed
+				const fromExtension = req.query.state === "true";
 
-			res.redirect(redirectUrl);
-		});
-	})(req, res, next);
-});
+				// Redirect to the dashboard with the fromExtension param only if it's true
+				const redirectUrl = fromExtension
+					? `${process.env.WEBAPP_URL}?fromExtension=true`
+					: `${process.env.WEBAPP_URL}`;
+
+				res.redirect(redirectUrl);
+			});
+		})(req, res, next);
+	});
+}
 
 export default router;
