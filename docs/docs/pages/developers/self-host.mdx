@@ -64,7 +64,7 @@ PGPASSWORD=your_pg_password
 Optional Environment Variables:
 
 - `LOG_LEVEL`: Controls the logging verbosity. Default is `info`. Valid values: `trace`, `debug`, `info`, `warn`, `error` and `fatal`.
-- `WEBAPP_URL`: Optional, required for payments and password reset.
+- `WEBAPP_URL`: Optional, required for payments, password reset and google auth.
   This is the url of the web app without trailing `/`, for example (`https://dashboard.mydomain.com`)(\*)
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`: Required for sending password reset links.
 
@@ -199,42 +199,13 @@ This command will start your Docker containers in detached mode.
 
 Once the services are up and running, you can exit the machine.
 
-## 8. Build the extensions
+## 8. Connect the extension to your custom backend
 
-Now you can build the extensions and connect them to your domain.
-On your local machine, clone the repository again to build the extensions:
+- Install the [official Unsearch extension](/product/getting-started).
+- In the extension popup, click on the settings icon.
+- Enter your base domain as the host (for example: domain.com).
 
-```bash
-git clone https://github.com/unsearchapp/unsearch.git
-```
+![alt text](../extension-custom-server.png "Title")
 
-Then create an `.env` file at the root of the repository with the following values,
-substituting mydomain.com for your actual domain:
 
-```bash
-VITE_WEBAPP_URL=https://dashboard.mydomain.com
-VITE_BACKEND_URL=https://dashboard.mydomain.com
-VITE_WS_URL=wss://ws.mydomain.com
-```
-
-Before building, install all required packages:
-
-```bash
-pnpm install
-```
-
-Run the following command to build the extensions:
-
-```
-pnpm --filter extension build
-```
-
-The extensions are now built and ready to use. You can find them at:
-
-- `/extension/dist/chrome`: Chrome extension (should work on any Chromium-based browser)
-- `/extension/dist/edge`: Edge extension
-- `/extension/dist/firefox`: Firefox extension
-
-::::info
-They are unpacked; you can create a `.zip` file with all of their contents if needed.
-::::
+You’re good to go!
