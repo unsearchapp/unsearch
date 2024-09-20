@@ -57,7 +57,12 @@ export const Plans = () => {
 				<h2 className="mb-8 mt-20 text-center text-4xl font-bold">Select your plan</h2>
 				<div className="mx-auto w-full max-w-md space-y-8">
 					<div className="rounded-lg bg-gray-900 p-6 shadow-lg sm:mx-0">
-						<h2 className="text-5xl font-bold text-white">$6</h2>
+						<div className="flex items-center justify-between">
+							<h2 className="text-5xl font-bold text-white">$6</h2>
+							<span className="rounded-md bg-primary px-2 py-1 text-sm font-bold">
+								7-day free trial
+							</span>
+						</div>
 						<p className="text-gray-400">/month</p>
 
 						<ul className="mt-6 space-y-2 text-gray-300">

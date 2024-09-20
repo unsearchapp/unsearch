@@ -26,6 +26,9 @@ router.post("/create-checkout-session", requireAuth, async (req, res) => {
 		automatic_tax: {
 			enabled: true
 		},
+		subscription_data: {
+			trial_period_days: 7
+		},
 		success_url: `${process.env.WEBAPP_URL}/plans?session_id={CHECKOUT_SESSION_ID}`,
 		cancel_url: `${process.env.WEBAPP_URL}/plans`
 	};

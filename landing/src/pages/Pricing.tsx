@@ -26,7 +26,12 @@ export const Pricing = () => {
 
 				<div className="mx-auto max-w-md space-y-8">
 					<div className="mx-2 rounded-lg bg-gray-900 p-6 shadow-lg sm:mx-0">
-						<h2 className="text-5xl font-bold text-white">$6</h2>
+						<div className="flex items-center justify-between">
+							<h2 className="text-5xl font-bold text-white">$6</h2>
+							<span className="rounded-md bg-primary px-2 py-1 text-sm font-bold">
+								7-day free trial
+							</span>
+						</div>
 						<p className="text-gray-400">/month</p>
 
 						<ul className="mt-6 space-y-2 text-gray-300">
