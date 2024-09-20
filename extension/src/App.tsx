@@ -62,7 +62,9 @@ function App() {
 			{view === "settings" && (
 				<Settings setView={setView} port={port} host={host} setHost={setHost} />
 			)}
-			{view === "home" && <Home email={email} isConnected={isConnected} port={port} />}
+			{view === "home" && (
+				<Home email={email} isConnected={isConnected} port={port} url={dashboardUrl} />
+			)}
 		</>
 	);
 }
