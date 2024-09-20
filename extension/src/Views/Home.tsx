@@ -9,10 +9,11 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 interface HomeProps {
 	email: string;
 	isConnected: boolean;
+	url: string;
 	port: browser.Runtime.Port | null;
 }
 
-export const Home: React.FC<HomeProps> = ({ email, isConnected, port }) => {
+export const Home: React.FC<HomeProps> = ({ email, isConnected, port, url }) => {
 	const [loading, setLoading] = useState<boolean>(false);
 
 	const handleClick = async () => {
@@ -85,7 +86,7 @@ export const Home: React.FC<HomeProps> = ({ email, isConnected, port }) => {
 							</Button>
 						)}
 						<a
-							href={`${import.meta.env.VITE_WEBAPP_URL}`}
+							href={`${url}`}
 							target="_blank"
 							className={`${buttonVariants({
 								variant: "secondary"
