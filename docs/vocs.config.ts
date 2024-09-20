@@ -35,7 +35,10 @@ export default defineConfig({
 		},
 		{
 			text: "Changelog",
-			items: [{ text: "0.1.0", link: "/changelog/0_1_0" }]
+			items: [
+				{ text: "0.1.0", link: "/changelog/0_1_0" },
+				{ text: "0.2.0", link: "/changelog/0_2_0" }
+			]
 		}
 	],
 	banner: "Head to our new [Discord](https://discord.com/invite/HtqQegCZ4j)!",
