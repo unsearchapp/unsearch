@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Unsearch",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "Securely sync your browsing data across all your browsers and devices.",
 	"action": {
 		"default_popup": "index.html",
