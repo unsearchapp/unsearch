@@ -31,8 +31,10 @@ import {
 } from "ui";
 import { getSessions } from "@/api/sessions";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useAuthContext } from "@/hooks/useAuthContext";
 
 export const Main = () => {
+	const { user } = useAuthContext();
 	const [query, setQuery] = useState<string>("");
 	const [data, setData] = useState<HistoryItem[]>([]);
 	const [page, setPage] = useState<number>(1);
@@ -82,6 +84,13 @@ export const Main = () => {
 	};
 
 	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const fromExtension = params.get("fromExtension");
+
+		if (fromExtension === "true") {
+			window.postMessage({ type: "signupSuccess", user }, "*");
+		}
+
 		getSessions().then((sessions) => {
 			const updatedSessions = sessions.map((session) => ({
 				value: session._id,

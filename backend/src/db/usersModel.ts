@@ -80,3 +80,14 @@ export const updateUserPasswordByEmail = async (email: string, password: string)
 		throw error;
 	}
 };
+
+export async function createUserWithGoogle({
+	googleId,
+	email
+}: {
+	googleId: string;
+	email: string;
+}) {
+	const [user]: User[] = await knex("Users").insert({ email, googleId }).returning("*");
+	return user;
+}

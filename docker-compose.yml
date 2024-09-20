@@ -22,6 +22,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
       target: development
+    network_mode: host
     ports:
       - "1234:1234"
       - "5000:5000"
@@ -50,6 +51,8 @@ services:
       - SMTP_USER
       - SMTP_PASS
       - EMAIL_FROM
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
 
     depends_on:
       postgres:
@@ -61,6 +64,7 @@ services:
       context: .
       dockerfile: client/Dockerfile
       target: development
+    network_mode: host
     environment:
       - APP_URL
       - VITE_SELF_HOSTED=${SELF_HOSTED}
