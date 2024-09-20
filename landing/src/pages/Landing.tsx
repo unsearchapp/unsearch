@@ -21,14 +21,14 @@ export const Landing = () => {
 					<div className="sm:pt-38 relative z-10 mx-auto max-w-4xl pb-10 pt-32">
 						<div className="flex flex-col items-center py-14 text-center">
 							<a
-								href={"https://docs.unsearch.app/changelog/0_1_0"}
+								href={"https://docs.unsearch.app/changelog/0_2_0"}
 								target="_blank"
 								className={`${buttonVariants({
 									variant: "outline"
 								})} flex w-full gap-x-2 border-primary hover:text-inherit sm:w-auto`}
 							>
 								<ReaderIcon />
-								Alpha 0.1.0 is out!
+								Alpha 0.2.0 is out!
 							</a>
 
 							<h1 className="mt-4 text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-6xl">
