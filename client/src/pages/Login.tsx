@@ -3,6 +3,7 @@ import { Button, Input, Label } from "ui";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import logo from "@packages/assets/images/unsearch.png";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { handleGoogleLogin } from "../utils/auth";
 
 const isSelfHosted = import.meta.env.VITE_SELF_HOSTED === "true";
 
@@ -46,7 +47,7 @@ export function Login() {
 	return (
 		<div className="h-screen w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 			<div className="flex items-center justify-center py-12">
-				<div className="mx-auto grid w-[350px] gap-6">
+				<div className="mx-auto grid w-[350px] gap-4">
 					<div className="grid gap-2 text-center">
 						<img src={logo} className="mx-auto mb-4 w-16" />
 						<h1 className="text-3xl font-bold">Login</h1>
@@ -91,6 +92,15 @@ export function Login() {
 							Login
 						</Button>
 					</form>
+					<span className="text-center text-muted-foreground">or</span>
+					<Button
+						variant="outline"
+						onClick={handleGoogleLogin}
+						className="w-full bg-slate-100 text-slate-800 hover:bg-slate-200 hover:text-slate-800"
+					>
+						<img src="./google.png" alt="Google logo" width={22} height={22} className="mr-2" />
+						Sign in with Google
+					</Button>
 					<div className="mt-4 text-center text-sm">
 						Don&apos;t have an account?{" "}
 						<a
